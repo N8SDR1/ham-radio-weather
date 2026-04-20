@@ -1,0 +1,13 @@
+module qml
+singleton Theme 1.0 Theme.qml
+singleton Units 1.0 Units.qml
+singleton Moods 1.0 Moods.qml
+singleton AppSettings 1.0 AppSettings.qml
+singleton TileCatalog 1.0 TileCatalog.qml
+singleton WeatherCodes 1.0 WeatherCodes.qml
+singleton Batteries 1.0 Batteries.qml
+singleton AlertRules 1.0 AlertRules.qml
+singleton AppVersion 1.0 AppVersion.qml
+singleton SatelliteCatalog 1.0 SatelliteCatalog.qml
+singleton StationSource 1.0 StationSource.qml
+singleton DonateUrl 1.0 DonateUrl.qml

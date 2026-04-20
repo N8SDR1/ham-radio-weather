@@ -1,0 +1,30 @@
+# --- secrets / per-user config ---
+.env
+.env.local
+
+# --- python ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# --- editors ---
+.vscode/
+.idea/
+*.swp
+
+# --- PyInstaller build output ---
+build/
+dist/
+
+# --- generated assets (produced by tools/make_icon.py on demand) ---
+assets/wxham_clean.png
+assets/icon.ico
+
+# --- os junk ---
+Thumbs.db
+.DS_Store
+
+# keep .spec tracked — PyInstaller config is part of the repo
+!wx-dashboard.spec
