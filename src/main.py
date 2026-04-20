@@ -17,16 +17,19 @@ class ClipboardHelper(QObject):
     def setText(self, text: str):
         QGuiApplication.clipboard().setText(text or "")
 
+from api.alerts_router import AlertsRouter
 from api.ambient import AmbientClient
+from api.blitzortung import BlitzortungClient
 from api.ecowitt import EcowittClient
 from api.hamqsl import HamQslClient
 from api.no_station import NoStationClient
 from api.open_meteo import OpenMeteoClient
 from api.satellites import SatellitesClient
+from api.space_weather import SpaceWeatherClient
 from api.updates import UpdateChecker
 from config import Config
 
-APP_VERSION = "1.0.7"
+APP_VERSION = "1.0.8"
 
 logger = logging.getLogger(__name__)
 
@@ -101,21 +104,27 @@ def main() -> int:
     if not qml_dir.exists():
         qml_dir = Path(__file__).resolve().parent / "qml"
 
-    weather    = _make_weather_client()
-    hamqsl     = HamQslClient()
-    forecast   = OpenMeteoClient()
-    satellites = SatellitesClient()
+    weather      = _make_weather_client()
+    hamqsl       = HamQslClient()
+    forecast     = OpenMeteoClient()
+    satellites   = SatellitesClient()
+    blitzortung  = BlitzortungClient()
+    alerts       = AlertsRouter()
+    spaceWeather = SpaceWeatherClient()
 
     engine = QQmlApplicationEngine()
     ctx = engine.rootContext()
     clipboard      = ClipboardHelper()
     updateChecker  = UpdateChecker(APP_VERSION)
-    ctx.setContextProperty("weatherClient",    weather)
-    ctx.setContextProperty("hamqslClient",     hamqsl)
-    ctx.setContextProperty("forecastClient",   forecast)
-    ctx.setContextProperty("satellitesClient", satellites)
-    ctx.setContextProperty("clipboard",        clipboard)
-    ctx.setContextProperty("updateChecker",    updateChecker)
+    ctx.setContextProperty("weatherClient",      weather)
+    ctx.setContextProperty("hamqslClient",       hamqsl)
+    ctx.setContextProperty("forecastClient",     forecast)
+    ctx.setContextProperty("satellitesClient",   satellites)
+    ctx.setContextProperty("blitzortungClient",  blitzortung)
+    ctx.setContextProperty("alertsClient",       alerts)
+    ctx.setContextProperty("spaceWeatherClient", spaceWeather)
+    ctx.setContextProperty("clipboard",          clipboard)
+    ctx.setContextProperty("updateChecker",      updateChecker)
     # Prefer the transparent version produced by tools/make_icon.py
     logo_file = assets_dir / "wxham_clean.png"
     if not logo_file.exists():
@@ -134,12 +143,21 @@ def main() -> int:
     hamqsl.start()
     forecast.start()
     satellites.start()
+    # Blitzortung only polls in None mode (logic gated in Main.qml), but
+    # we start it unconditionally so setLocation/setRadius can prime it;
+    # it's a no-op until a location is set.
+    blitzortung.start()
+    alerts.start()
+    spaceWeather.start()
 
     exit_code = app.exec()
     weather.stop()
     hamqsl.stop()
     forecast.stop()
     satellites.stop()
+    blitzortung.stop()
+    alerts.stop()
+    spaceWeather.stop()
     return exit_code
 
 

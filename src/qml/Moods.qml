@@ -99,6 +99,18 @@ QtObject {
         return                                       { title: "DX Paradise",          icon: "🌍" }
     }
 
+    // Space-weather 72 h forecast — peak Kp in the outlook window
+    function spaceWeather(peakKp) {
+        if (peakKp === undefined || isNaN(peakKp)) return { title: "Space Weather", icon: "🌌" }
+        if (peakKp < 4)   return { title: "Smooth Bands Ahead",       icon: "😌" }
+        if (peakKp < 5)   return { title: "Wobbly Ionosphere",         icon: "🌀" }
+        if (peakKp < 6)   return { title: "G1 · Bands Itchy",          icon: "🧲" }
+        if (peakKp < 7)   return { title: "G2 · Buckle Up the Beam",   icon: "⚠️" }
+        if (peakKp < 8)   return { title: "G3 · Bands Fading Fast",    icon: "🚨" }
+        if (peakKp < 9)   return { title: "G4 · Aurora Hour",          icon: "🌌" }
+        return                   { title: "G5 · Carrington Jr!",        icon: "💥" }
+    }
+
     // NOAA geomagnetic storm scale from K-index.
     // G0 = quiet, G5 = extreme. Returns {level, title, color}.
     function geoStorm(kidx) {

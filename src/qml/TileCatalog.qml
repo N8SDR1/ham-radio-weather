@@ -10,7 +10,11 @@ QtObject {
         { id: "wind",      name: "Wind",            defaultSize: "M", minSize: "M", source: "weather"  },
         { id: "lightning", name: "Lightning",       defaultSize: "M", minSize: "M", source: "weather"  },
         { id: "rain",      name: "Rain Fall",       defaultSize: "M", minSize: "M", source: "weather"  },
-        { id: "shack",     name: "Shack or Hell",   defaultSize: "M", minSize: "M", source: "weather", requiresLocalStation: true },
+        // Internal id stays "shack" for back-compat with saved layouts; the
+        // user-facing name is "Indoor" since that's what the sensor actually
+        // measures. Mood titles ("Frozen Shack" → "Hell Mode") and icon keep
+        // the joke.
+        { id: "shack",     name: "Indoor",          defaultSize: "M", minSize: "M", source: "weather", requiresLocalStation: true },
         { id: "humidity",  name: "Humidity",        defaultSize: "S", minSize: "S", source: "weather"  },
         { id: "uv",        name: "UV Index",        defaultSize: "S", minSize: "S", source: "weather"  },
         { id: "solar",     name: "Solar Radiation", defaultSize: "M", minSize: "S", source: "weather"  },
@@ -20,6 +24,8 @@ QtObject {
         { id: "sunmoon",   name: "Sun / Moon",      defaultSize: "M", minSize: "M", source: "forecast" },
         { id: "satellites", name: "Satellites",     defaultSize: "L", minSize: "M", source: "sat"      },
         { id: "alerts",     name: "Alerts",         defaultSize: "M", minSize: "M", source: "weather"  },
+        { id: "nwsalerts",  name: "Weather Alerts", defaultSize: "L", minSize: "M", source: "nws",      requiresAlertsActive: true },
+        { id: "spacewx",    name: "Space Weather",  defaultSize: "L", minSize: "M", source: "spacewx"  },
         { id: "airquality", name: "Air Quality",    defaultSize: "M", minSize: "M", source: "weather", defaultHidden: true },
         { id: "soil",       name: "Soil Probes",    defaultSize: "M", minSize: "M", source: "weather", defaultHidden: true },
         { id: "leak",       name: "Leak Detectors", defaultSize: "M", minSize: "M", source: "weather", defaultHidden: true }

@@ -60,6 +60,34 @@ Settings {
     property string netatmoAccessToken:  ""
     property string netatmoRefreshToken: ""
 
+    // --- None-mode (station-less) extras ---
+    // Blitzortung lightning-strike radius (km stored; UI converts to user's
+    // preferred unit). Applies only in stationType == "none".
+    property real   lightningRadiusKm:  160.9      // ~100 mi default
+    // Comma-separated region codes. Default covers the Americas;
+    // Europe=1, Oceania=2, East Asia=4, Africa/SW Asia=5, South America=6.
+    property string blitzortungRegions: "7,12,13"
+
+    // Weather-alerts polling cadence, in minutes. 0 = disabled (tile hidden).
+    // Valid: 0, 5, 10, 15, 30, 45, 60.
+    property int    nwsPollMinutes:     15
+
+    // Weather-alerts provider:
+    //   "nws"        — US NWS
+    //   "ec"         — Environment Canada
+    //   "meteoalarm" — Europe (38 countries, ATOM/CAP feed)
+    //   "bom"        — Australia Bureau of Meteorology
+    //   "off"        — no alerts provider (tile hidden) — default
+    //
+    // (Auto-detect was removed — it caused a startup hang on slow networks
+    //  and obscured which feed was actually in use.)
+    property string alertsProvider: "off"
+    // MeteoAlarm country slug (e.g. "germany", "united-kingdom").
+    // Empty = auto-detect from lat/lon.
+    property string alertsCountry:  ""
+    // Australian state code for BoM ("nsw", "vic", "qld", "sa", "wa", "tas", "nt", "act").
+    property string alertsState:    ""
+
     // Panel layout state — stored as JSON strings because QtCore.Settings
     // only persists basic scalar types cleanly.
     property string panelOrderJson:  ""   // JSON array of tile ids

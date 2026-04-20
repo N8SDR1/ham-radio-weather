@@ -113,9 +113,9 @@ Tile {
             // geomagnetic storm badge
             Rectangle {
                 Layout.topMargin: 4
-                Layout.preferredHeight: 24
-                Layout.preferredWidth: stormRow.implicitWidth + 14
-                radius: 6
+                Layout.preferredHeight: 30
+                Layout.preferredWidth: stormRow.implicitWidth + 18
+                radius: 7
                 color: Qt.rgba(root._stormColor(root._storm.severity).r,
                                root._stormColor(root._storm.severity).g,
                                root._stormColor(root._storm.severity).b, 0.18)
@@ -132,17 +132,17 @@ Tile {
                 Row {
                     id: stormRow
                     anchors.centerIn: parent
-                    spacing: 8
+                    spacing: 9
                     Label {
                         text: root._storm.severity >= 3 ? "⚠" : "🧲"
                         color: root._stormColor(root._storm.severity)
-                        font.pixelSize: 13
+                        font.pixelSize: 15
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Label {
                         text: root._storm.level
                         color: root._stormColor(root._storm.severity)
-                        font.pixelSize: 14
+                        font.pixelSize: 17
                         font.weight: Font.Bold
                         font.family: App.Theme.displayFont
                         anchors.verticalCenter: parent.verticalCenter
@@ -150,13 +150,13 @@ Tile {
                     Label {
                         text: "·"
                         color: root._stormColor(root._storm.severity)
-                        font.pixelSize: 13
+                        font.pixelSize: 15
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Label {
                         text: root._storm.title.toUpperCase() + " STORM"
                         color: root._stormColor(root._storm.severity)
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.weight: Font.Bold
                         font.letterSpacing: 1.0
                         anchors.verticalCenter: parent.verticalCenter

@@ -37,9 +37,11 @@ propagation tile next to the next-ISS-pass tile. This one does.
 
 ### Ham-specific
 - **HF Propagation** tile — SFI, K/A index, 8-cell band conditions grid, NOAA G-scale geomagnetic storm badge (data via hamqsl.com)
+- **Space Weather** tile — 72-hour planetary-Kp forecast from NOAA SWPC with peak prediction and 24-bar 3-hour forecast chart; pairs with HF Propagation (now vs next 3 days)
 - **Amateur Satellite passes** — tracks 13 active birds (ISS, AO-7, AO-73, SO-50, RS-44, HADES-ICM, and more) using Celestrak TLEs + SGP4
-- **Lightning proximity warnings** — "Unplug the Rig!" when strikes are within 5 mi
+- **Lightning proximity warnings** — "Unplug the Rig!" when strikes are within 5 mi; None-mode users get the Blitzortung real-time global feed
 - **Antenna Swayer!** mode when wind exceeds 50 mph
+- **Weather Alerts** — NWS (US), Environment Canada, MeteoAlarm (Europe), or Australian BoM — pick your region
 
 ### UX
 - Dark / light / auto theme (follows OS)
@@ -115,10 +117,12 @@ final installer step. Without it, the standalone bundle at
 | Ecowitt Cloud API v3 | Your Ecowitt station | App key + API key + station MAC |
 | [Open-Meteo](https://open-meteo.com) | Forecast + None-mode current weather | None |
 | [HamQSL](https://www.hamqsl.com) | Solar flux, K/A index, band conditions | None |
+| [NOAA SWPC](https://services.swpc.noaa.gov) | 72-hour planetary-Kp forecast | None |
 | [Celestrak](https://celestrak.org) | Amateur satellite TLEs | None |
+| [Blitzortung](https://www.blitzortung.org) | Real-time global lightning (None mode) | None |
+| [NWS](https://api.weather.gov) / Environment Canada / MeteoAlarm / BoM | Weather alerts by region | None |
 
-Planned v1.0.8: Ecowitt LAN polling, [Blitzortung](https://www.blitzortung.org)
-lightning, and NWS alerts for station-less mode.
+Planned: Ecowitt LAN polling (direct `get_livedata_info` calls, no cloud).
 
 ## Supported hardware
 

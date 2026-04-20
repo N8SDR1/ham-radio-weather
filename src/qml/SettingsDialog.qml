@@ -192,6 +192,152 @@ Dialog {
                     anchors.fill: parent
                     spacing: 4
 
+                    // --- Weather Alerts Provider (official government alerts) ---
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+                        Label {
+                            text: "Alerts provider"
+                            color: App.Theme.textDim
+                            Layout.preferredWidth: 190
+                        }
+                        ComboBox {
+                            id: providerCombo
+                            Layout.fillWidth: true
+                            textRole: "label"
+                            valueRole: "id"
+                            model: [
+                                { id: "off",        label: "Off  (default — hides the Weather Alerts tile)" },
+                                { id: "nws",        label: "\uD83C\uDDFA\uD83C\uDDF8  NWS (United States)" },
+                                { id: "ec",         label: "\uD83C\uDDE8\uD83C\uDDE6  Environment Canada" },
+                                { id: "meteoalarm", label: "\uD83C\uDDEA\uD83C\uDDFA  MeteoAlarm (Europe, 38 countries)" },
+                                { id: "bom",        label: "\uD83C\uDDE6\uD83C\uDDFA  Australian BoM" }
+                            ]
+                            currentIndex: {
+                                var ids = ["off","nws","ec","meteoalarm","bom"]
+                                var i = ids.indexOf(App.AppSettings.alertsProvider)
+                                return i >= 0 ? i : 0    // anything legacy → Off
+                            }
+                            onActivated: {
+                                var ids = ["off","nws","ec","meteoalarm","bom"]
+                                App.AppSettings.alertsProvider = ids[currentIndex]
+                            }
+                        }
+                    }
+
+                    // Country picker — MeteoAlarm only (auto-detect when blank)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: App.AppSettings.alertsProvider === "meteoalarm"
+                        spacing: 6
+                        Label {
+                            text: "Country"
+                            color: App.Theme.textDim
+                            Layout.preferredWidth: 190
+                        }
+                        App.ThemedTextField {
+                            Layout.fillWidth: true
+                            text: App.AppSettings.alertsCountry
+                            placeholderText: "e.g. germany, united-kingdom (blank = auto)"
+                            onEditingFinished: App.AppSettings.alertsCountry = text.trim().toLowerCase()
+                            ToolTip.text: "MeteoAlarm country slug. Leave blank to auto-detect from your coordinates. Supported: austria, belgium, bulgaria, croatia, cyprus, czech-republic, denmark, estonia, finland, france, germany, greece, hungary, iceland, ireland, israel, italy, latvia, lithuania, luxembourg, malta, moldova, montenegro, netherlands, north-macedonia, norway, poland, portugal, romania, serbia, slovakia, slovenia, spain, sweden, switzerland, united-kingdom"
+                            ToolTip.visible: hovered
+                        }
+                    }
+
+                    // State picker — BoM only
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: App.AppSettings.alertsProvider === "bom"
+                        spacing: 6
+                        Label {
+                            text: "Australian state"
+                            color: App.Theme.textDim
+                            Layout.preferredWidth: 190
+                        }
+                        ComboBox {
+                            Layout.fillWidth: true
+                            model: [
+                                { id: "",    label: "Auto-detect from location" },
+                                { id: "nsw", label: "New South Wales" },
+                                { id: "vic", label: "Victoria" },
+                                { id: "qld", label: "Queensland" },
+                                { id: "sa",  label: "South Australia" },
+                                { id: "wa",  label: "Western Australia" },
+                                { id: "tas", label: "Tasmania" },
+                                { id: "nt",  label: "Northern Territory" },
+                                { id: "act", label: "Australian Capital Territory" }
+                            ]
+                            textRole: "label"
+                            valueRole: "id"
+                            currentIndex: {
+                                var ids = ["","nsw","vic","qld","sa","wa","tas","nt","act"]
+                                var i = ids.indexOf(App.AppSettings.alertsState)
+                                return i >= 0 ? i : 0
+                            }
+                            onActivated: {
+                                var ids = ["","nsw","vic","qld","sa","wa","tas","nt","act"]
+                                App.AppSettings.alertsState = ids[currentIndex]
+                            }
+                        }
+                    }
+
+                    // Cadence
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+                        visible: App.AppSettings.alertsProvider !== "off"
+                        Label {
+                            text: "Check frequency"
+                            color: App.Theme.textDim
+                            Layout.preferredWidth: 190
+                        }
+                        ComboBox {
+                            Layout.fillWidth: true
+                            textRole: "label"
+                            valueRole: "value"
+                            model: [
+                                { label: "Off",                        value: 0 },
+                                { label: "Every 5 min",                value: 5 },
+                                { label: "Every 10 min",               value: 10 },
+                                { label: "Every 15 min  (default)",    value: 15 },
+                                { label: "Every 30 min",               value: 30 },
+                                { label: "Every 45 min",               value: 45 },
+                                { label: "Every 60 min",               value: 60 }
+                            ]
+                            currentIndex: {
+                                var v = App.AppSettings.nwsPollMinutes
+                                var values = [0, 5, 10, 15, 30, 45, 60]
+                                var i = values.indexOf(v)
+                                return i >= 0 ? i : 3
+                            }
+                            onActivated: {
+                                var values = [0, 5, 10, 15, 30, 45, 60]
+                                App.AppSettings.nwsPollMinutes = values[currentIndex]
+                            }
+                        }
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 4
+                        text: App.AppSettings.alertsProvider === "off"
+                              ? "Provider \u201COff\u201D hides the Weather Alerts tile entirely and stops all polling."
+                              : "Current source: " + alertsClient.providerName
+                                + ".  \u201COff\u201D (frequency or provider) hides the Weather Alerts tile."
+                        color: App.Theme.textFaint
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: App.Theme.border
+                        opacity: 0.4
+                        Layout.bottomMargin: 4
+                    }
+
                     Label {
                         text: "Trigger an alert on the Alerts tile when the threshold is met."
                         color: App.Theme.textFaint
@@ -655,6 +801,67 @@ Dialog {
                                 color: App.Theme.text
                                 font.pixelSize: 11
                                 wrapMode: Text.WordWrap
+                            }
+                        }
+                    }
+
+                    // === NONE-MODE options ===
+                    ColumnLayout {
+                        visible: stationCol.currentBrand === "none"
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: "Without a local station, lightning is aggregated from the Blitzortung.org strike network. Pick how wide an area around your grid square counts as \"nearby\"."
+                            color: App.Theme.textFaint
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: App.Units.metric ? "Lightning radius (km)" : "Lightning radius (mi)"
+                                color: App.Theme.textDim
+                                Layout.preferredWidth: 170
+                            }
+                            App.ThemedTextField {
+                                Layout.fillWidth: true
+                                text: {
+                                    var km = App.AppSettings.lightningRadiusKm
+                                    return App.Units.metric ? km.toFixed(0)
+                                                            : (km * 0.621371).toFixed(0)
+                                }
+                                placeholderText: App.Units.metric ? "160" : "100"
+                                onEditingFinished: {
+                                    var v = parseFloat(text)
+                                    if (isNaN(v) || v <= 0) return
+                                    var km = App.Units.metric ? v : (v / 0.621371)
+                                    // clamp to reasonable bounds (5-2000 km)
+                                    km = Math.max(5, Math.min(2000, km))
+                                    App.AppSettings.lightningRadiusKm = km
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Regions"
+                                color: App.Theme.textDim
+                                Layout.preferredWidth: 170
+                            }
+                            App.ThemedTextField {
+                                Layout.fillWidth: true
+                                text: App.AppSettings.blitzortungRegions
+                                placeholderText: "7,12,13 (Americas)"
+                                onEditingFinished: {
+                                    if (text.length > 0)
+                                        App.AppSettings.blitzortungRegions = text
+                                }
+                                ToolTip.text: "Blitzortung regions: 1=Europe, 2=Oceania, 4=East Asia, 5=Africa/SW Asia, 6=S. America, 7/12/13=Americas."
+                                ToolTip.visible: hovered
                             }
                         }
                     }

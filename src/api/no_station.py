@@ -76,7 +76,7 @@ class NoStationClient(QObject):
             return
         self._lat, self._lon = float(lat), float(lon)
         logger.info("No-station location set to %.4f, %.4f", self._lat, self._lon)
-        self._poll()
+        QTimer.singleShot(0, self._poll)
 
     @Slot()
     def start(self):
@@ -86,7 +86,7 @@ class NoStationClient(QObject):
                 "Settings → Operator so Open-Meteo has a location."
             )
         else:
-            self._poll()
+            QTimer.singleShot(0, self._poll)
         self._timer.start()
 
     @Slot()

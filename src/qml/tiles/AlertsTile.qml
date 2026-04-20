@@ -3,13 +3,15 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "../" as App
 
+// Threshold-based alerts driven by the local weather data (station or None
+// mode). NOAA/NWS official alerts live in the separate NwsAlertsTile so they
+// can render with full wrapped text.
 Tile {
     id: root
     property var data: ({})
 
-    // evaluate rules against current weather data every time data OR settings change
     readonly property var active: {
-        var _dep = App.AppSettings.alertsJson   // binding dep
+        var _dep = App.AppSettings.alertsJson
         return App.AlertRules.evaluate(data, App.AppSettings.getAlertSettings())
     }
     readonly property int activeCount: active.length
@@ -30,9 +32,6 @@ Tile {
                                     : App.Theme.warn
 
     implicitHeight: 300
-
-    // Pulse tile border when any warning active — hooked via Tile's dropArea border
-    // (we can't retarget that; we add a subtle accent pulse on our own row instead)
 
     // === Empty state ===
     ColumnLayout {
@@ -79,7 +78,6 @@ Tile {
                 border.color: App.AlertRules.severityColor(modelData.severity)
                 border.width: 1
 
-                // pulse for warnings only
                 SequentialAnimation on opacity {
                     running: modelData.severity === "warning"
                     loops: Animation.Infinite

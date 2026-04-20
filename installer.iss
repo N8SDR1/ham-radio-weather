@@ -3,7 +3,7 @@
 
 #define MyAppName          "Ham Radio Weather"
 #define MyAppShortName     "HamRadioWeather"
-#define MyAppVersion       "1.0.7"
+#define MyAppVersion       "1.0.8"
 #define MyAppPublisher     "N8SDR - Rick Langford"
 #define MyAppURL           "https://www.paypal.com/donate/?business=NP2ZQS4LR454L"
 #define MyAppExeName       "HamRadioWeather.exe"

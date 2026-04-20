@@ -13,6 +13,7 @@ Loader {
     property var hfData: ({})
     property var forecastData: ({})
     property var satelliteData: ({})
+    property var spaceWxData: ({})
     property int  gridColumnCount: 1
 
     signal hideRequested(string tileId)
@@ -46,6 +47,8 @@ Loader {
             case "airquality":return cAirQuality
             case "soil":      return cSoil
             case "leak":      return cLeak
+            case "nwsalerts": return cNwsAlerts
+            case "spacewx":   return cSpaceWx
         }
         return null
     }
@@ -57,6 +60,7 @@ Loader {
         if (meta.source === "hf")            item.data = loader.hfData
         else if (meta.source === "forecast") item.data = loader.forecastData
         else if (meta.source === "sat")      item.data = loader.satelliteData
+        else if (meta.source === "spacewx")  item.data = loader.spaceWxData
         else                                 item.data = loader.weatherData
     }
 
@@ -79,6 +83,7 @@ Loader {
     onHfDataChanged:        _applyData()
     onForecastDataChanged:  _applyData()
     onSatelliteDataChanged: _applyData()
+    onSpaceWxDataChanged:   _applyData()
     onTileSizeChanged:      if (item) item.tileSize = tileSize
 
     Component { id: cOutdoor;   CurrentConditionsTile {} }
@@ -98,4 +103,6 @@ Loader {
     Component { id: cAirQuality; AirQualityTile {} }
     Component { id: cSoil;       SoilTile {} }
     Component { id: cLeak;       LeakTile {} }
+    Component { id: cNwsAlerts;  NwsAlertsTile {} }
+    Component { id: cSpaceWx;    SpaceWeatherTile {} }
 }

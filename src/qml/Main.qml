@@ -19,6 +19,22 @@ ApplicationWindow {
     property var hfData:     ({})
     property var forecast:   ({})
     property var satellites: ({})
+    property var spaceWx:    ({})
+    // Internal sources merged into `latest` — split so a Blitzortung update
+    // doesn't clobber the station's non-lightning fields.
+    property var _weatherData: ({})
+    property var _blitzData:   ({})
+
+    function _recomputeLatest() {
+        var merged = {}
+        for (var k in _weatherData) merged[k] = _weatherData[k]
+        // Blitzortung lightning only overlays in online-only (None) mode.
+        // When the user has a real station, its sensor wins.
+        if (App.StationSource.isOnlineOnly(App.AppSettings.stationType)) {
+            for (var k2 in _blitzData) merged[k2] = _blitzData[k2]
+        }
+        root.latest = merged
+    }
 
     // tile currently being dragged (set by a tile's dragStarted, cleared on dragEnded)
     property string draggingTileId: ""
@@ -48,12 +64,16 @@ ApplicationWindow {
     readonly property var activeTiles: {
         var st = App.AppSettings.stationType
         var onlineOnly = App.StationSource.isOnlineOnly(st)
+        var alertsOff  = (App.AppSettings.alertsProvider === "off"
+                          || App.AppSettings.nwsPollMinutes === 0)
         return _order.filter(function(id) {
             if (_hidden.indexOf(id) !== -1) return false
             var meta = App.TileCatalog.get(id)
-            // Tiles flagged requiresLocalStation auto-hide in None mode (no
-            // way to populate indoor temp/humidity from online sources).
-            if (onlineOnly && meta && meta.requiresLocalStation) return false
+            if (!meta) return false
+            // Tiles flagged requiresLocalStation auto-hide in None mode.
+            if (onlineOnly && meta.requiresLocalStation) return false
+            // Tiles flagged requiresAlertsActive hide when alerts are off.
+            if (alertsOff   && meta.requiresAlertsActive) return false
             return true
         })
     }
@@ -95,7 +115,21 @@ ApplicationWindow {
 
     Connections {
         target: weatherClient
-        function onDataUpdated(data) { root.latest = data || {} }
+        function onDataUpdated(data) {
+            root._weatherData = data || {}
+            root._recomputeLatest()
+        }
+    }
+    Connections {
+        target: blitzortungClient
+        function onDataUpdated(data) {
+            root._blitzData = data || {}
+            root._recomputeLatest()
+        }
+    }
+    Connections {
+        target: spaceWeatherClient
+        function onDataUpdated(data) { root.spaceWx = data || {} }
     }
     Connections {
         target: hamqslClient
@@ -117,11 +151,15 @@ ApplicationWindow {
             var lon = App.AppSettings.overrideLon
             forecastClient.setLocation(lat, lon)
             satellitesClient.setLocation(lat, lon)
+            blitzortungClient.setLocation(lat, lon)
+            alertsClient.setLocation(lat, lon)
             if (typeof weatherClient.setLocation === "function")
                 weatherClient.setLocation(lat, lon)
         } else if (App.AppSettings.gridSquare) {
             forecastClient.setGridSquare(App.AppSettings.gridSquare)
             satellitesClient.setGridSquare(App.AppSettings.gridSquare)
+            blitzortungClient.setGridSquare(App.AppSettings.gridSquare)
+            alertsClient.setGridSquare(App.AppSettings.gridSquare)
             if (typeof weatherClient.setGridSquare === "function")
                 weatherClient.setGridSquare(App.AppSettings.gridSquare)
         }
@@ -137,6 +175,32 @@ ApplicationWindow {
             var list = App.AppSettings.getTrackedSats()
             if (list.length === 0) list = App.SatelliteCatalog.defaultEnabledIds()
             satellitesClient.setTrackedList(list)
+        }
+        function onLightningRadiusKmChanged() {
+            blitzortungClient.setRadiusKm(App.AppSettings.lightningRadiusKm)
+        }
+        function onBlitzortungRegionsChanged() {
+            blitzortungClient.setRegions(App.AppSettings.blitzortungRegions)
+        }
+        function onNwsPollMinutesChanged() {
+            alertsClient.setPollInterval(App.AppSettings.nwsPollMinutes)
+        }
+        function onAlertsProviderChanged() {
+            alertsClient.setProvider(App.AppSettings.alertsProvider)
+        }
+        function onAlertsCountryChanged() {
+            alertsClient.setCountry(App.AppSettings.alertsCountry)
+        }
+        function onAlertsStateChanged() {
+            alertsClient.setState(App.AppSettings.alertsState)
+        }
+        function onStationTypeChanged() {
+            // When user flips away from None, clear any stale Blitzortung
+            // overlay so the lightning tile goes back to the station feed.
+            if (!App.StationSource.isOnlineOnly(App.AppSettings.stationType)) {
+                root._blitzData = ({})
+                root._recomputeLatest()
+            }
         }
     }
 
@@ -164,6 +228,14 @@ ApplicationWindow {
         var sats = App.AppSettings.getTrackedSats()
         if (sats.length === 0) sats = App.SatelliteCatalog.defaultEnabledIds()
         satellitesClient.setTrackedList(sats)
+        // Prime Blitzortung with saved radius + regions
+        blitzortungClient.setRadiusKm(App.AppSettings.lightningRadiusKm)
+        blitzortungClient.setRegions(App.AppSettings.blitzortungRegions)
+        // Prime alerts provider, cadence, and country/state from saved settings
+        alertsClient.setCountry(App.AppSettings.alertsCountry)
+        alertsClient.setState(App.AppSettings.alertsState)
+        alertsClient.setPollInterval(App.AppSettings.nwsPollMinutes)
+        alertsClient.setProvider(App.AppSettings.alertsProvider)
     }
     Connections {
         target: App.Units
@@ -333,19 +405,25 @@ ApplicationWindow {
                 }
             }
 
-            // Alert badge — mirrors battery indicator style
+            // Alert badge — combines threshold-based rules + official NWS alerts
             Rectangle {
                 id: alertBadge
-                readonly property var _active: {
+                readonly property var _thresholdActive: {
                     var _d = App.AppSettings.alertsJson
                     return App.AlertRules.evaluate(root.latest, App.AppSettings.getAlertSettings())
                 }
+                readonly property var _nwsActive: alertsClient.alerts || []
                 readonly property bool _hasWarning: {
-                    for (var i = 0; i < _active.length; i++)
-                        if (_active[i].severity === "warning") return true
+                    for (var i = 0; i < _thresholdActive.length; i++)
+                        if (_thresholdActive[i].severity === "warning") return true
+                    // NWS "Extreme" / "Severe" → warning
+                    for (var j = 0; j < _nwsActive.length; j++) {
+                        var s = (_nwsActive[j].severity || "").toLowerCase()
+                        if (s === "extreme" || s === "severe") return true
+                    }
                     return false
                 }
-                readonly property int _count: _active.length
+                readonly property int _count: _thresholdActive.length + _nwsActive.length
 
                 Layout.preferredWidth: Math.max(68, alertRow.implicitWidth + 16)
                 Layout.preferredHeight: 26
@@ -405,8 +483,16 @@ ApplicationWindow {
                     ToolTip.delay: 300
                     ToolTip.text: {
                         if (alertBadge._count === 0) return "No alerts — click to configure thresholds"
-                        var list = alertBadge._active.map(function(a) { return a.icon + " " + a.label }).join("\n")
-                        return list + "\n\nClick to configure in Settings"
+                        var lines = []
+                        for (var i = 0; i < alertBadge._thresholdActive.length; i++) {
+                            var a = alertBadge._thresholdActive[i]
+                            lines.push(a.icon + " " + a.label)
+                        }
+                        for (var j = 0; j < alertBadge._nwsActive.length; j++) {
+                            var n = alertBadge._nwsActive[j]
+                            lines.push("⚠ NWS: " + (n.event || "Alert"))
+                        }
+                        return lines.join("\n") + "\n\nClick to configure in Settings"
                     }
                 }
             }
@@ -596,6 +682,7 @@ ApplicationWindow {
                         hfData:        root.hfData
                         forecastData:  root.forecast
                         satelliteData: root.satellites
+                        spaceWxData:   root.spaceWx
                         gridColumnCount: grid.columns
 
                         onHideRequested: function(id)      { root.hideTile(id) }

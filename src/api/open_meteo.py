@@ -57,13 +57,13 @@ class OpenMeteoClient(QObject):
         self._lat = float(lat)
         self._lon = float(lon)
         logger.info("Forecast location set to %.4f, %.4f", self._lat, self._lon)
-        self._poll()
+        QTimer.singleShot(0, self._poll)
 
     @Slot()
     def start(self):
         self._timer.start()
         if self._lat is not None:
-            self._poll()
+            QTimer.singleShot(0, self._poll)
 
     @Slot()
     def stop(self):

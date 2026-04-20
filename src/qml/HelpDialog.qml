@@ -40,9 +40,9 @@ Dialog {
     readonly property var tilesList: [
         { h: "Outdoor",         b: "Current outdoor temperature, feels-like, dew point, humidity. Mood title shifts by temperature (Deep Freeze → Melt Mode). Source: your station, or Open-Meteo in None mode." },
         { h: "Wind",            b: "Live compass with wind needle, speed gauge, direction label + degree, today's peak, gust." },
-        { h: "Lightning",       b: "Strike count + distance. 'Unplug the Rig!' mood when strikes are within 5 miles. Uses your local lightning sensor; in None mode this tile will come alive once Blitzortung integration lands in v1.0.8." },
+        { h: "Lightning",       b: "Strike count + distance. 'Unplug the Rig!' mood when strikes are within 5 miles. Uses your local lightning sensor when available, or the Blitzortung real-time global lightning feed in None mode (configurable radius in Settings)." },
         { h: "Rain Fall",       b: "Current rate, today's total, event total. From your station's tipping bucket (or Open-Meteo rainfall in None mode)." },
-        { h: "Shack or Hell",   b: "Indoor temp + humidity. Title and icon change by temperature: Frozen Shack → Shack → Heating → Hell Mode. Auto-hidden in None mode (no way to get indoor readings online)." },
+        { h: "Indoor",          b: "Indoor temp + humidity from your station's console/gateway sensor. Title and icon change by temperature with a hat-tip to hot shacks: Frozen Shack → Shack → Heating → Hell Mode. Auto-hidden in None mode (no way to get indoor readings online)." },
         { h: "Humidity",        b: "Outdoor humidity with a mood (Desert → Comfy → Swamp)." },
         { h: "UV Index",        b: "UV value + risk band + 12-step scale bar." },
         { h: "Solar Radiation", b: "Incoming solar irradiance in W/m². Typical clear-sky noon is ~1000 W/m²." },
@@ -50,6 +50,7 @@ Dialog {
         { h: "Forecast",        b: "7-day outlook via Open-Meteo, keyed off your grid square. Today summary plus a per-day strip with high/low and precip probability." },
         { h: "Sun / Moon",      b: "Sunrise/sunset times and computed moon phase for today." },
         { h: "HF Propagation",  b: "SFI, K-index, A-index, 8-cell band-condition grid (80m-40m / 30m-20m / 17m-15m / 12m-10m × day/night), and NOAA G-scale geomagnetic storm badge. Data via HamQSL — works regardless of weather station." },
+        { h: "Space Weather",   b: "72-hour planetary-Kp forecast from NOAA SWPC. Shows current Kp, the upcoming peak with G-scale badge, and a 24-bar chart of predicted Kp values in 3-hour slots over the next 3 days. Pairs with HF Propagation: that tile shows now, this one shows what's coming — plan DX sessions around quiet bands, not into storms. Mood titles lean into the joke: 'Smooth Bands Ahead' → 'G2 · Buckle Up the Beam' → 'G5 · Carrington Jr!'." },
         { h: "Satellites",      b: "Next amateur satellite pass with time, direction, max elevation, duration. Plus an upcoming-passes list. TLE via Celestrak, orbit math via SGP4." },
         { h: "Alerts",          b: "Aggregates tripped thresholds. Pulsing card for warnings, amber for watches, blue for info." },
         { h: "Air Quality, Soil, Leak", b: "Hidden by default. Enable in Settings → Panels when you add the corresponding sensor (AQIN, WH51, WH55). Auto-populate once data arrives." }
@@ -87,7 +88,7 @@ Dialog {
         { h: "No forecast / Sun-Moon",
           b: "Both require a valid grid square (at least 4 chars like EN80). If you prefer explicit coordinates, enable 'Override with explicit latitude / longitude' under Settings → Operator." },
         { h: "Tiles missing in None mode",
-          b: "Shack or Hell auto-hides in None mode (no indoor sensor data online). Battery indicator also disappears. Lightning and Rain tiles may be blank until Blitzortung + NWS integrations land in v1.0.8." },
+          b: "Indoor (Shack) auto-hides in None mode — there's no way to get indoor sensor readings online. Battery indicator also disappears since there's no station to report pack status. Lightning falls back to the Blitzortung global feed (configurable radius)." },
         { h: "Dashboard text looks wrong on macOS / Linux",
           b: "Display font is Bahnschrift on Windows, Helvetica Neue on macOS, Roboto Condensed on Linux. Edit Theme.qml's displayFont if you want something different." },
         { h: "Share a bug report",

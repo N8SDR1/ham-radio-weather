@@ -12,6 +12,12 @@ Item {
     property string tileId: ""
     property string tileSize: "M"
     property string minSize: "S"
+    // Optional always-on centered header label that overrides the
+    // (toggleable) canonical name. Used by tiles that want a persistent
+    // subtitle (e.g. Weather Alerts showing its active provider).
+    property string centerLabelText: ""
+    property color  centerLabelColor: App.Theme.accent
+    property int    centerLabelSize: 14
 
     readonly property bool _canS:  App.TileCatalog.sizeOrder(minSize) <= 0
     readonly property bool _canM:  App.TileCatalog.sizeOrder(minSize) <= 1
@@ -76,30 +82,8 @@ Item {
             width: parent.width - 2 * App.Theme.tilePad
             height: 38
 
-            // Canonical panel name — centered between left (icon + mood) and
-            // right (drag handle + menu). Thin / medium-bright so it reads as
-            // subtle metadata, not as the primary title.
-            Label {
-                id: canonicalName
-                visible: App.AppSettings.showCanonicalNames && text.length > 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                // Leave room so we never collide with the left/right rows:
-                // ~130 px absorbed by icon (36) + mood title + spacing on the
-                // left, ~80 px by drag + menu on the right. Width is capped.
-                width: Math.max(0, parent.width - 240)
-                horizontalAlignment: Text.AlignHCenter
-                elide: Text.ElideRight
-                text: {
-                    var meta = App.TileCatalog.get(tile.tileId)
-                    return meta ? meta.name : ""
-                }
-                color: App.Theme.dark ? "#d0d5df" : "#5a6272"
-                font.pixelSize: 12
-                font.weight: Font.Thin
-                font.letterSpacing: 0.4
-            }
-
+            // Left cluster: icon + mood title. Row auto-sizes so the
+            // punchline is always visible in full — no elide, no truncation.
             Row {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
@@ -119,9 +103,6 @@ Item {
                         text: tile.iconEmoji
                         font.pixelSize: 22
                     }
-                    // Hover tooltip shows the tile's canonical name (since the
-                    // title above it shows the dynamic mood which can obscure
-                    // what the panel actually is).
                     MouseArea {
                         id: iconHover
                         anchors.fill: parent
@@ -135,7 +116,9 @@ Item {
                         }
                     }
                 }
+
                 Label {
+                    id: moodLabel
                     anchors.verticalCenter: parent.verticalCenter
                     text: tile.title.toUpperCase()
                     color: App.Theme.textDim
@@ -146,7 +129,32 @@ Item {
                 }
             }
 
+            // Canonical / provider name — anchored near horizontal center but
+            // nudged slightly right so mood titles have more left-side runway.
+            // Not width-capped so it never elides; may visually approach the
+            // right cluster on tight tiles (acceptable tradeoff per user).
+            Label {
+                id: canonicalName
+                readonly property bool hasOverride: tile.centerLabelText.length > 0
+                visible: (hasOverride || App.AppSettings.showCanonicalNames) && text.length > 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.horizontalCenterOffset: 30   // slight right of dead-center
+                anchors.verticalCenter: parent.verticalCenter
+                text: {
+                    if (tile.centerLabelText.length > 0) return tile.centerLabelText
+                    var meta = App.TileCatalog.get(tile.tileId)
+                    return meta ? meta.name : ""
+                }
+                color: canonicalName.hasOverride
+                       ? tile.centerLabelColor
+                       : (App.Theme.dark ? "#d0d5df" : "#5a6272")
+                font.pixelSize: canonicalName.hasOverride ? tile.centerLabelSize : 12
+                font.weight: canonicalName.hasOverride ? Font.DemiBold : Font.Thin
+                font.letterSpacing: canonicalName.hasOverride ? 0.6 : 0.4
+            }
+
             Row {
+                id: rightCluster
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2

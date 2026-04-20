@@ -3,6 +3,20 @@
 All notable changes to Ham Radio Weather Dashboard are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.8] — 2026-04-20
+
+### Added
+- **Space Weather tile** — 72-hour planetary-Kp forecast from NOAA SWPC. Shows current Kp, upcoming peak with G-scale badge, and a 24-bar chart of predicted Kp values in 3-hour slots over the next 3 days. Pairs with HF Propagation (now) — this one tells you what's coming, so you can plan DX sessions around quiet bands and duck before storms. Mood titles lean into the ham joke: "Smooth Bands Ahead" → "G2 · Buckle Up the Beam" → "G5 · Carrington Jr!"
+- Dedicated `SpaceWeatherClient` polling `services.swpc.noaa.gov` every 60 min (non-blocking startup via `QTimer.singleShot(0)`)
+
+### Changed
+- Panel name in the tile header is now nudged slightly right of center (`horizontalCenterOffset: 30`) so the mood title and canonical name coexist without elide cutting off punchlines
+- "Magnetic storm" readout inside the HF Propagation tile bumped a tick larger for readability
+- Space Weather legend and day labels (Today / +1 day / +2 days) use larger, higher-contrast typography and bigger color swatches
+
+### Fixed
+- Space Weather parser now handles both new (array-of-objects) and legacy (array-of-arrays + header row) SWPC JSON shapes — SWPC changed format and the original parser was skipping every row
+
 ## [1.0.7] — 2026-04-20
 
 ### First public release
