@@ -1,3 +1,4 @@
+<img width="2560" height="1392" alt="Ham Radio WX Dashboard" src="https://github.com/user-attachments/assets/e99c0b86-98a0-4a3f-8603-a90d7a785599" />
 # Ham Radio Weather Dashboard
 
 A Qt6 / PySide6 desktop weather dashboard for amateur radio operators. Connects
