@@ -557,6 +557,75 @@ Dialog {
                         font.pixelSize: 11
                         wrapMode: Text.WordWrap
                     }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        height: 1
+                        color: App.Theme.border
+                        opacity: 0.4
+                    }
+
+                    // Sparklines: on/off toggle + color scheme
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+                        CheckBox {
+                            id: sparkToggle
+                            checked: App.AppSettings.sparklinesEnabled
+                            text: ""
+                            onToggled: App.AppSettings.sparklinesEnabled = checked
+                        }
+                        Label {
+                            text: "Show 24 h sparkline trends"
+                            color: App.Theme.text
+                            font.pixelSize: 13
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignVCenter
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: sparkToggle.checked = !sparkToggle.checked
+                            }
+                        }
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        text: "Tiny inline trend chart showing the last ~24 hours of data on the Outdoor, Humidity, and Pressure tiles. Auto-hidden in None mode."
+                        color: App.Theme.textFaint
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 2
+                        Layout.leftMargin: 26     // indent under the toggle
+                        spacing: 8
+                        enabled: App.AppSettings.sparklinesEnabled
+
+                        Label {
+                            text: "Color:"
+                            color: App.Theme.textDim
+                            font.pixelSize: 12
+                        }
+                        ButtonGroup { id: sparkColorGroup }
+                        RadioButton {
+                            text: "Tile accent"
+                            checked: App.AppSettings.sparklineColor === "accent"
+                            ButtonGroup.group: sparkColorGroup
+                            onCheckedChanged: if (checked)
+                                App.AppSettings.sparklineColor = "accent"
+                        }
+                        RadioButton {
+                            text: "Red"
+                            checked: App.AppSettings.sparklineColor === "red"
+                            ButtonGroup.group: sparkColorGroup
+                            onCheckedChanged: if (checked)
+                                App.AppSettings.sparklineColor = "red"
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
                 }
             }
 

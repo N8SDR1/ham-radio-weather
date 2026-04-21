@@ -211,7 +211,11 @@ Tile {
                 }
             }
 
+            // Today's peak requires continuous local-sensor polling to roll
+            // up a daily max — no equivalent in None mode (Open-Meteo gives
+            // hourly current, not station-style rolling peaks).
             ColumnLayout {
+                visible: !App.StationSource.isOnlineOnly(App.AppSettings.stationType)
                 spacing: 2
                 Label {
                     text: "TODAY'S PEAK"

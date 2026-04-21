@@ -36,6 +36,10 @@ class NoStationClient(QObject):
     connectionChanged  = Signal(bool)
     errorOccurred      = Signal(str)
     diagnosticsChanged = Signal()
+    # Stub to match AmbientClient's interface. None mode has no station
+    # and therefore no history; this signal is declared but never fires,
+    # so sparklines and history-derived fields naturally hide.
+    historyUpdated     = Signal("QVariant")
 
     URL     = "https://api.open-meteo.com/v1/forecast"
     POLL_MS = 5 * 60 * 1000   # 5 minutes
@@ -122,7 +126,12 @@ class NoStationClient(QObject):
                 "uv_index",
                 "shortwave_radiation",
             ]),
+            # Daily precipitation_sum lets us surface a real "rain today"
+            # value in the Rain tile (otherwise None mode shows 0.00 all
+            # day until the current hour has rain).
+            "daily": "precipitation_sum",
             "forecast_hours":   2,    # just current hour (and one ahead for safety)
+            "forecast_days":    1,    # just today for daily rollup
             "timezone":         "auto",
             "temperature_unit": "fahrenheit",
             "wind_speed_unit":  "mph",
@@ -169,8 +178,9 @@ class NoStationClient(QObject):
 
     @classmethod
     def _flatten(cls, j: dict) -> dict:
-        cur = (j.get("current") or {})
+        cur  = (j.get("current") or {})
         hrly = (j.get("hourly")  or {})
+        dly  = (j.get("daily")   or {})
 
         # pick the value at the current-hour index from the hourly arrays
         now_iso = (cur.get("time") or "")
@@ -181,6 +191,12 @@ class NoStationClient(QObject):
             if 0 <= idx < len(vals):
                 return vals[idx]
             return None
+
+        # Daily precipitation_sum — index 0 is today (we asked for forecast_days=1).
+        daily_precip = None
+        _dp = dly.get("precipitation_sum") or []
+        if isinstance(_dp, list) and _dp:
+            daily_precip = _dp[0]
 
         out = {
             # outdoor
@@ -198,10 +214,12 @@ class NoStationClient(QObject):
             "baromrelin":   cls._hpa_to_inhg(cur.get("pressure_msl")),
             "baromabsin":   cls._hpa_to_inhg(cur.get("surface_pressure")),
 
-            # rain — Open-Meteo's "precipitation" is the current hour total
+            # rain — Open-Meteo's "precipitation" is the current hour total;
+            # daily comes from the daily.precipitation_sum rollup. No
+            # concept of "event total" (since-start-of-rain) online —
+            # RainTile.qml hides the EVENT column in None mode.
             "hourlyrainin": cur.get("rain") or cur.get("precipitation"),
-            "eventrainin":  cur.get("rain") or cur.get("precipitation"),
-            "dailyrainin":  None,   # Open-Meteo daily needs a separate call; fill later
+            "dailyrainin":  daily_precip,
 
             # solar + UV (from hourly)
             "solarradiation": hour("shortwave_radiation"),

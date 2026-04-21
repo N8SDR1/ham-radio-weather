@@ -58,6 +58,6 @@ echo.
 echo ============================================
 echo  Build complete!
 echo    Bundle:    dist\HamRadioWeather\
-echo    Installer: dist\installer\HamRadioWeather-Setup-1.0.8.exe
+echo    Installer: dist\installer\HamRadioWeather-Setup-1.0.9.exe
 echo ============================================
 endlocal

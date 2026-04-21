@@ -6,9 +6,25 @@ import "../" as App
 Tile {
     id: root
     property var data: ({})
+    // Rolling station history (newest-first), injected by TileLoader when
+    // the weather adapter exposes one. Empty on Ecowitt/None until their
+    // history endpoints land — sparkline simply hides in that case.
+    property var history: []
 
     readonly property real tempVal: data.tempf !== undefined ? data.tempf : NaN
     readonly property var _mood: App.Moods.outdoor(tempVal)
+
+    // Extract the numeric series for the sparkline. Non-numeric entries
+    // are dropped so the stroke doesn't jump to 0 for gaps.
+    readonly property var _tempSeries: {
+        if (!history || history.length === 0) return []
+        var r = []
+        for (var i = 0; i < history.length; i++) {
+            var v = history[i].tempf
+            if (typeof v === "number") r.push(v)
+        }
+        return r
+    }
 
     title:     _mood.title
     iconEmoji: _mood.icon
@@ -76,6 +92,17 @@ Tile {
         }
 
         Item { Layout.fillHeight: true }
+
+        // 24 h temperature sparkline. Auto-hides when history is empty.
+        Sparkline {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 26
+            Layout.bottomMargin: 4
+            values: root._tempSeries
+            lineColor: App.AppSettings.sparklineColor === "red"
+                       ? App.Theme.bad : root.accentColor
+            dotColor:  lineColor
+        }
 
         RowLayout {
             Layout.fillWidth: true

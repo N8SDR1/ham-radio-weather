@@ -33,6 +33,11 @@ class EcowittClient(QObject):
     connectionChanged = Signal(bool)
     errorOccurred     = Signal(str)
     diagnosticsChanged= Signal()
+    # Stub to match AmbientClient's interface. Ecowitt history will be
+    # wired up in a later batch via the /api/v3/device/history endpoint;
+    # for now the signal never fires and `history` stays an empty list,
+    # so sparklines simply hide on Ecowitt setups.
+    historyUpdated    = Signal("QVariant")
 
     CLOUD_URL = "https://api.ecowitt.net/api/v3/device/real_time"
     POLL_MS   = 60_000

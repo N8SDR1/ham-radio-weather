@@ -14,8 +14,8 @@ QtObject {
     }
 
     // — Surfaces —
-    readonly property color bg:         dark ? "#070a14" : "#c9cdd4"
-    readonly property color bgAccent:   dark ? "#0d1220" : "#bfc4cc"
+    readonly property color bg:         dark ? "#070a14" : "#b7bcc4"
+    readonly property color bgAccent:   dark ? "#0d1220" : "#abb1b9"
     readonly property color surface:    dark ? "#121826" : "#dde1e7"
     readonly property color surfaceTop: dark ? "#1a2336" : "#e4e7ec"
     readonly property color surfaceBot: dark ? "#0f1624" : "#d5d9e0"

@@ -7,7 +7,8 @@ QtObject {
         var day = isDay === undefined ? true : isDay
         if (code === undefined || code === null) return "❓"
         if (code === 0)    return day ? "☀"  : "🌙"
-        if (code <= 2)     return day ? "🌤" : "☁"
+        // ⛅ renders with a lighter cloud than 🌤 on Windows — visible on dark theme
+        if (code <= 2)     return day ? "⛅" : "☁"
         if (code === 3)    return "☁"
         if (code === 45 || code === 48) return "🌫"
         if (code >= 51 && code <= 57)   return "🌦"

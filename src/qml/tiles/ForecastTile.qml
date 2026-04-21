@@ -44,10 +44,10 @@ Tile {
             Layout.alignment: Qt.AlignHCenter
             spacing: 20
 
-            Label {
-                text: root.hasData ? App.WeatherCodes.icon(root.curCode, root.isDay) : "☀"
-                font.pixelSize: 62
+            GlowEmoji {
                 Layout.alignment: Qt.AlignVCenter
+                text: root.hasData ? App.WeatherCodes.icon(root.curCode, root.isDay) : "☀"
+                pixelSize: 62
             }
 
             BigNumber {
@@ -116,10 +116,10 @@ Tile {
                         font.letterSpacing: 0.8
                         font.weight: Font.Bold
                     }
-                    Label {
+                    GlowEmoji {
                         Layout.alignment: Qt.AlignHCenter
                         text: d ? App.WeatherCodes.icon(d.weather_code, true) : ""
-                        font.pixelSize: 32
+                        pixelSize: 32
                     }
                     Label {
                         Layout.alignment: Qt.AlignHCenter

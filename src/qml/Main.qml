@@ -20,6 +20,10 @@ ApplicationWindow {
     property var forecast:   ({})
     property var satellites: ({})
     property var spaceWx:    ({})
+    // Rolling 24 h history from the weather client (populated ~10 s after
+    // startup on Ambient; stays [] on Ecowitt/None until their history
+    // endpoints are wired up). Consumed by tiles rendering sparklines.
+    property var stationHistory: []
     // Internal sources merged into `latest` — split so a Blitzortung update
     // doesn't clobber the station's non-lightning fields.
     property var _weatherData: ({})
@@ -118,6 +122,9 @@ ApplicationWindow {
         function onDataUpdated(data) {
             root._weatherData = data || {}
             root._recomputeLatest()
+        }
+        function onHistoryUpdated(list) {
+            root.stationHistory = list || []
         }
     }
     Connections {
@@ -236,7 +243,19 @@ ApplicationWindow {
         alertsClient.setState(App.AppSettings.alertsState)
         alertsClient.setPollInterval(App.AppSettings.nwsPollMinutes)
         alertsClient.setProvider(App.AppSettings.alertsProvider)
+        // Kick off a one-shot GitHub release check after startup settles.
+        // Fires the update-pill in the header when a newer release exists.
+        updateCheckTimer.start()
     }
+
+    // Delay by 5 s so the check doesn't compete with first-data fetches.
+    Timer {
+        id: updateCheckTimer
+        interval: 5000
+        repeat: false
+        onTriggered: updateChecker.check()
+    }
+
     Connections {
         target: App.Units
         function onSystemChanged() { App.AppSettings.unitSystem = App.Units.system }
@@ -334,6 +353,59 @@ ApplicationWindow {
                           : "— configure in Settings"
                     color: App.Theme.textDim
                     font.pixelSize: 13
+                }
+
+                // Update-available pill — only shows when a newer GitHub
+                // release exists. Click to open the release page.
+                Rectangle {
+                    id: updatePill
+                    visible: updateChecker.status === "update_available"
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredHeight: 24
+                    Layout.preferredWidth: updatePillRow.implicitWidth + 14
+                    radius: 12
+                    color: Qt.rgba(App.Theme.good.r, App.Theme.good.g, App.Theme.good.b, 0.18)
+                    border.color: App.Theme.good
+                    border.width: 1
+
+                    SequentialAnimation on opacity {
+                        running: updatePill.visible
+                        loops: Animation.Infinite
+                        NumberAnimation { to: 0.55; duration: 1200; easing.type: Easing.InOutSine }
+                        NumberAnimation { to: 1.0;  duration: 1200; easing.type: Easing.InOutSine }
+                    }
+
+                    Row {
+                        id: updatePillRow
+                        anchors.centerIn: parent
+                        spacing: 5
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "⬆"
+                            color: App.Theme.good
+                            font.pixelSize: 13
+                            font.weight: Font.Bold
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Update " + updateChecker.latestTag
+                            color: App.Theme.good
+                            font.pixelSize: 11
+                            font.weight: Font.Bold
+                            font.letterSpacing: 0.5
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Qt.openUrlExternally(updateChecker.releaseUrl)
+                        ToolTip.visible: containsMouse
+                        ToolTip.delay: 300
+                        ToolTip.text: updateChecker.message
+                                    + "  —  click to open release page"
+                    }
                 }
             }
 
@@ -683,6 +755,7 @@ ApplicationWindow {
                         forecastData:  root.forecast
                         satelliteData: root.satellites
                         spaceWxData:   root.spaceWx
+                        stationHistory: root.stationHistory
                         gridColumnCount: grid.columns
 
                         onHideRequested: function(id)      { root.hideTile(id) }

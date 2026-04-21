@@ -3,6 +3,34 @@
 All notable changes to Ham Radio Weather Dashboard are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.9] — 2026-04-21
+
+### Added
+- **Historical station data** — `AmbientClient` now polls `/devices/{MAC}?limit=288` every 20 minutes, keeping a rolling 24-hour buffer of 5-minute snapshots available to the UI. Exposed to QML via `weatherClient.history` and a new `historyUpdated` signal. Foundation for every trend feature in this release and for the Trends tile coming in v1.1.0.
+- **3-hour pressure trend arrow** — Pressure tile now shows a compact ▲/▼/→ badge next to the value with the signed delta (e.g. "+0.04") and a small "3 H" label. Colors: green rising, amber falling, dim steady. ±0.02 inHg deadband keeps tiny wobbles from looking like storms. Mood title now reflects reality — "Pressure · Storm Brewing ⛈" when the bottom drops out.
+- **"From Yesterday" humidity delta** — the block below the big % reading now populates with a signed delta vs. ~24 h ago (▲ 4% / ▼ 3%). Previously a placeholder; now wired to real history.
+- **24-hour sparklines** — tiny inline trend charts under the main value on the Outdoor, Humidity, and Pressure tiles. Canvas-rendered polyline with a small current-value dot at the right edge. Auto-scales to the 24 h min/max range per tile.
+- **Sparkline settings** — Settings → Appearance now has a "Show 24 h sparkline trends" toggle plus a color picker: "Tile accent" (each tile uses its own mood color) or "Red" (all sparklines in alert red).
+- **Update-available pill** in the header — pulsing green "Update v1.0.X" badge appears automatically when a newer GitHub release is published. Click to jump to the release page. One-shot check 5 s after startup; no UI if you're already on the latest.
+
+### Changed
+- **None-mode audit** — sub-elements that can't be computed without a local sensor now hide cleanly instead of showing empty placeholders:
+  - Wind tile: "Today's Peak" column hidden
+  - Rain tile: "Event" column + divider hidden
+- **Rain · Day** in None mode now sources from Open-Meteo's `daily.precipitation_sum` (was previously always 0.00 until the current hour had rain).
+- **Humidity tile**: the "From Yesterday" block is now properly gated on station mode + data-present; cleanly hidden in None mode and during the first ~10 s of startup.
+- **Forecast tile icons** — replaced 🌤 (partly-cloudy-day) with ⛅ which renders with a lighter cloud on Windows' Segoe UI Emoji; applied a universal `GlowEmoji` wrapper so every forecast icon gets a subtle white halo, guaranteeing visibility against the dark theme without affecting light mode.
+- **Light-mode background** deepened from `#c9cdd4` → `#b7bcc4` for better tile/background contrast; tile surfaces unchanged so tiles now pop against the deeper backdrop.
+- Removed the cosmetic "From Yesterday" label row on the Humidity tile that previously floated alone when no data was available.
+
+### Fixed
+- NoStationClient now includes `daily=precipitation_sum&forecast_days=1` in its Open-Meteo query so None-mode users get real daily rainfall totals instead of a permanent 0.00.
+- Stub `historyUpdated` signal added to `EcowittClient` and `NoStationClient` so QML's global `Connections { target: weatherClient }` binding doesn't log warnings regardless of selected station type.
+
+### Technical notes
+- New reusable `GlowEmoji.qml` wrapper in `src/qml/tiles/` applies a `MultiEffect` halo to any emoji Label — reach for it anywhere on the dashboard going forward, not just Forecast.
+- New reusable `Sparkline.qml` component — Canvas-based polyline with configurable `values`, `lineColor`, `dotColor`, `lineWidth`, `dotRadius`, `newestFirst`. Auto-hides when fewer than 2 points or when `AppSettings.sparklinesEnabled` is off.
+
 ## [1.0.8] — 2026-04-20
 
 ### Added

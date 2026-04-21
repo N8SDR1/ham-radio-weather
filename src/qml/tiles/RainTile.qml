@@ -18,6 +18,10 @@ Tile {
 
     implicitHeight: 280
 
+    // EVENT (since-rain-started) is a station-stateful value — Open-Meteo
+    // has no equivalent, so the column is hidden in None mode.
+    readonly property bool _showEvent: !App.StationSource.isOnlineOnly(App.AppSettings.stationType)
+
     RowLayout {
         anchors.fill: parent
         spacing: 8
@@ -25,8 +29,16 @@ Tile {
         RainStat { label: "RATE";  valueIn: root.rate;  suffix: "/hr"; Layout.fillWidth: true; Layout.fillHeight: true }
         Rectangle { width: 1; Layout.fillHeight: true; color: App.Theme.border; Layout.topMargin: 10; Layout.bottomMargin: 10 }
         RainStat { label: "DAY";   valueIn: root.day;   Layout.fillWidth: true; Layout.fillHeight: true }
-        Rectangle { width: 1; Layout.fillHeight: true; color: App.Theme.border; Layout.topMargin: 10; Layout.bottomMargin: 10 }
-        RainStat { label: "EVENT"; valueIn: root.event; Layout.fillWidth: true; Layout.fillHeight: true }
+        Rectangle {
+            visible: root._showEvent
+            width: 1; Layout.fillHeight: true; color: App.Theme.border
+            Layout.topMargin: 10; Layout.bottomMargin: 10
+        }
+        RainStat {
+            visible: root._showEvent
+            label: "EVENT"; valueIn: root.event
+            Layout.fillWidth: true; Layout.fillHeight: true
+        }
     }
 
     component RainStat: ColumnLayout {

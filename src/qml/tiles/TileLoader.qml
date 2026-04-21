@@ -14,6 +14,10 @@ Loader {
     property var forecastData: ({})
     property var satelliteData: ({})
     property var spaceWxData: ({})
+    // Rolling station history (newest-first list of snapshot records).
+    // Only consumed by tiles that declare a `history` property; others
+    // ignore it. Empty on Ecowitt/None until those adapters are wired.
+    property var stationHistory: []
     property int  gridColumnCount: 1
 
     signal hideRequested(string tileId)
@@ -72,6 +76,8 @@ Loader {
         if (meta && item.hasOwnProperty("minSize"))
             item.minSize = meta.minSize || "S"
         _applyData()
+        if (item.hasOwnProperty("history"))
+            item.history = loader.stationHistory
         item.hideRequested.connect(function()   { loader.hideRequested(loader.tileId) })
         item.sizeRequested.connect(function(sz) { loader.sizeRequested(loader.tileId, sz) })
         item.dragStarted.connect(function()         { loader.dragStarted(loader.tileId) })
@@ -84,6 +90,8 @@ Loader {
     onForecastDataChanged:  _applyData()
     onSatelliteDataChanged: _applyData()
     onSpaceWxDataChanged:   _applyData()
+    onStationHistoryChanged: if (item && item.hasOwnProperty("history"))
+                                 item.history = stationHistory
     onTileSizeChanged:      if (item) item.tileSize = tileSize
 
     Component { id: cOutdoor;   CurrentConditionsTile {} }

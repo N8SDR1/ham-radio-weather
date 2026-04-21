@@ -34,6 +34,9 @@ propagation tile next to the next-ISS-pass tile. This one does.
 - Tiles: Outdoor, Wind (with full compass), Lightning, Rain, Indoor (Shack), Humidity, UV, Solar Radiation, Pressure
 - 7-day Forecast (Open-Meteo)
 - Sun/Moon (sunrise/sunset + computed moon phase)
+- **24-hour sparkline trends** under the Outdoor, Humidity, and Pressure values (toggleable, color-configurable)
+- **3-hour pressure trend arrow** with signed delta — catches storm fronts hours before they arrive
+- **"From Yesterday"** humidity delta — quick read on how the day is trending
 
 ### Ham-specific
 - **HF Propagation** tile — SFI, K/A index, 8-cell band conditions grid, NOAA G-scale geomagnetic storm badge (data via hamqsl.com)
@@ -46,12 +49,13 @@ propagation tile next to the next-ISS-pass tile. This one does.
 ### UX
 - Dark / light / auto theme (follows OS)
 - °F / °C toggle
-- Mood titles that change with data (Deep Freeze → Scorcher, Dry as a Bone → Biblical, etc.)
+- Mood titles that change with data (Deep Freeze → Scorcher, Dry as a Bone → Biblical, Pressure Steady → Storm Brewing, etc.)
 - Drag-to-reorder tiles with before/after insertion and empty-space drop
 - Per-tile size controls (Small / Medium / Large / XL)
 - Per-tile hide/show in Settings
 - Configurable alert thresholds (heat, freeze, high wind, lightning nearby, low humidity/fire weather, etc.)
 - Configurable satellite tracking list
+- **In-header update pill** — pulses green automatically when a new GitHub release is published; one click opens the release page
 - Built-in Help guide and About with support link
 
 ### Architecture

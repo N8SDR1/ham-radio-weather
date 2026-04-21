@@ -38,15 +38,15 @@ Dialog {
     ]
 
     readonly property var tilesList: [
-        { h: "Outdoor",         b: "Current outdoor temperature, feels-like, dew point, humidity. Mood title shifts by temperature (Deep Freeze → Melt Mode). Source: your station, or Open-Meteo in None mode." },
+        { h: "Outdoor",         b: "Current outdoor temperature, feels-like, dew point, humidity. 24-hour temp sparkline under the big number traces the day's shape. Mood title shifts by temperature (Deep Freeze → Melt Mode). Source: your station, or Open-Meteo in None mode." },
         { h: "Wind",            b: "Live compass with wind needle, speed gauge, direction label + degree, today's peak, gust." },
         { h: "Lightning",       b: "Strike count + distance. 'Unplug the Rig!' mood when strikes are within 5 miles. Uses your local lightning sensor when available, or the Blitzortung real-time global lightning feed in None mode (configurable radius in Settings)." },
         { h: "Rain Fall",       b: "Current rate, today's total, event total. From your station's tipping bucket (or Open-Meteo rainfall in None mode)." },
         { h: "Indoor",          b: "Indoor temp + humidity from your station's console/gateway sensor. Title and icon change by temperature with a hat-tip to hot shacks: Frozen Shack → Shack → Heating → Hell Mode. Auto-hidden in None mode (no way to get indoor readings online)." },
-        { h: "Humidity",        b: "Outdoor humidity with a mood (Desert → Comfy → Swamp)." },
+        { h: "Humidity",        b: "Outdoor humidity with a mood (Desert → Comfy → Swamp). \"From Yesterday\" delta shows how much the humidity has changed vs. ~24 h ago (station mode only). 24-hour sparkline below the big number." },
         { h: "UV Index",        b: "UV value + risk band + 12-step scale bar." },
         { h: "Solar Radiation", b: "Incoming solar irradiance in W/m². Typical clear-sky noon is ~1000 W/m²." },
-        { h: "Pressure",        b: "Barometric pressure with a 28.0–31.0 inHg scale indicator." },
+        { h: "Pressure",        b: "Barometric pressure with a 28.0–31.0 inHg scale indicator. 3-hour trend badge (▲/▼/→) with signed delta shows where the bottom is heading — a falling badge with a drooping sparkline is often your earliest warning of an approaching storm front. Mood title (Steady / Rising / Falling / Storm Brewing) tracks the same signal." },
         { h: "Forecast",        b: "7-day outlook via Open-Meteo, keyed off your grid square. Today summary plus a per-day strip with high/low and precip probability." },
         { h: "Sun / Moon",      b: "Sunrise/sunset times and computed moon phase for today." },
         { h: "HF Propagation",  b: "SFI, K-index, A-index, 8-cell band-condition grid (80m-40m / 30m-20m / 17m-15m / 12m-10m × day/night), and NOAA G-scale geomagnetic storm badge. Data via HamQSL — works regardless of weather station." },
@@ -61,7 +61,8 @@ Dialog {
         { h: "⋮⋮ (tile header)",   b: "Click and drag to reorder. Drop on left half of target = insert BEFORE; right half = insert AFTER. Drop in empty grid space works too (snaps to nearest tile)." },
         { h: "⋯ (tile header)",   b: "Menu: Hide Panel, or resize to Small / Medium / Large / Extra Large. Tiles with minimum-size requirements (Forecast, HF Propagation) hide disallowed options." },
         { h: "Header buttons",    b: "°F/°C toggles units. Auto/Dark/Light cycles the theme. ⚙ opens Settings." },
-        { h: "Header indicators", b: "Pulsing dot = station feed status (green=live, red=offline). Source badge (ONLINE/AMBIENT/ECOWITT/etc.) shows the active data source — click to jump to station settings. Battery pill = sensor battery state (hidden in None mode). Alerts pill = active alert count." },
+        { h: "Header indicators", b: "Pulsing dot = station feed status (green=live, red=offline). Source badge (ONLINE/AMBIENT/ECOWITT/etc.) shows the active data source — click to jump to station settings. Battery pill = sensor battery state (hidden in None mode). Alerts pill = active alert count. Green pulsing 'Update v1.0.X' pill appears when a newer GitHub release is published — click to open the release page." },
+        { h: "Trends & sparklines", b: "24-hour sparkline trend charts appear under the main value on Outdoor, Humidity, and Pressure tiles once the first history fetch lands (~10 s after startup on Ambient). Toggle them off in Settings → Appearance if you prefer the cleaner big-number look. Color picker there lets you swap between each tile's own accent color or a uniform red for alert-style contrast. Auto-hidden in None mode since there's no station history to draw from." },
         { h: "Disclaimer",        b: "Shown on first run. Must be accepted to use the app. Lists all third-party sources and clarifies the tool is informational only — not a safety system." }
     ]
 

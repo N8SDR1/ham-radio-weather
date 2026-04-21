@@ -23,6 +23,16 @@ Settings {
     // between the mood title (left) and the drag/menu controls (right).
     property bool   showCanonicalNames: false
 
+    // Sparklines (24 h inline trend charts on Outdoor / Humidity / Pressure)
+    // — disable if you prefer the cleaner "just a big number" look.
+    property bool   sparklinesEnabled: true
+    // Color scheme for sparklines:
+    //   "accent" — each tile's own accent color (temp = hot/cold, hum = rain,
+    //              pressure = cyan). Consistent with the tile's mood palette.
+    //   "red"    — all sparklines rendered in the theme's `bad` red for
+    //              maximum visibility / alert-style contrast.
+    property string sparklineColor: "accent"
+
     // Legal / liability — app does not operate until user accepts on first run
     property bool   disclaimerAccepted: false
 
