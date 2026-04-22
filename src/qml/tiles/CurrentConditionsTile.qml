@@ -29,7 +29,23 @@ Tile {
     title:     _mood.title
     iconEmoji: _mood.icon
 
+    // Effect-state is the primary driver of the tile's color palette so
+    // the digits and halo always agree. Force toggles and user-tunable
+    // thresholds can push the effect on at temperatures where the normal
+    // accent logic would otherwise pick cyan — this keeps things coherent.
+    readonly property string _activeEffect:
+        App.AppSettings.effectForceFire ? "fire"
+      : App.AppSettings.effectForceIce  ? "ice"
+      : isNaN(tempVal) ? ""
+      : tempVal >= App.AppSettings.moodOutdoorFireF ? "fire"
+      : tempVal <= App.AppSettings.moodOutdoorIceF  ? "ice"
+      : ""
+
     accentColor: {
+        // Effect wins first — fire → orange digits, ice → blue digits.
+        if (_activeEffect === "fire") return App.Theme.hot
+        if (_activeEffect === "ice")  return App.Theme.cold
+        // Otherwise fall back to the usual temp-range coloring.
         if (isNaN(tempVal)) return App.Theme.accent
         if (tempVal >= 75) return App.Theme.hot
         if (tempVal <= 40) return App.Theme.cold
@@ -37,6 +53,8 @@ Tile {
     }
 
     readonly property color glowColor: {
+        if (_activeEffect === "fire") return App.Theme.hotGlow
+        if (_activeEffect === "ice")  return App.Theme.coldGlow
         if (isNaN(tempVal)) return App.Theme.accentGlow
         if (tempVal >= 75) return App.Theme.hotGlow
         if (tempVal <= 40) return App.Theme.coldGlow
@@ -60,6 +78,10 @@ Tile {
                 glowColor: root.glowColor
                 pixelSize: 92
                 glowOpacity: 0.9
+                // Effect state is computed once on the tile (drives both
+                // the color scheme and the halo) so digits and halo stay
+                // in sync across force-toggles and custom thresholds.
+                moodEffect: root._activeEffect
             }
 
             ColumnLayout {

@@ -24,7 +24,7 @@ LOGO_PATH    = PROJECT_ROOT / "assets" / "wxham_clean.png"
 if not LOGO_PATH.exists():
     LOGO_PATH = PROJECT_ROOT / "assets" / "wxham.png"
 
-APP_VERSION = "1.0.9"
+APP_VERSION = "1.0.10"
 
 # Palette (same as the multi-page doc so branding stays consistent)
 ACCENT   = colors.HexColor("#3b82f6")
@@ -121,7 +121,9 @@ def build():
             Paragraph("A weather dashboard built for amateur radio operators",
                       S_SUB),
             Paragraph(f"Version {APP_VERSION}  ·  Qt6 / PySide6  ·  "
-                      f"Free &amp; open source  ·  github.com/N8SDR1/ham-radio-weather",
+                      f"Free &amp; open source  ·  "
+                      f'<link href="https://github.com/N8SDR1/ham-radio-weather" color="#1d4ed8">'
+                      f'<u>github.com/N8SDR1/ham-radio-weather</u></link>',
                       S_META),
         ],
     ]]
@@ -157,8 +159,8 @@ def build():
         *bullets([
             "<b>Outdoor</b>, <b>Wind</b> (360° compass), <b>Rain</b>, <b>Lightning</b>, <b>Indoor</b>",
             "<b>Humidity</b>, <b>UV</b>, <b>Solar Radiation</b>, <b>Pressure</b>",
-            "<b>24 h sparklines</b> <i>(new in 1.0.9)</i> on Outdoor / Humidity / Pressure",
-            "<b>3 h pressure trend arrow</b> <i>(new in 1.0.9)</i> — catches fronts early",
+            "<b>24 h sparklines</b> + <b>3 h pressure trend arrow</b> on Ambient <i>and</i> Ecowitt",
+            "<b>Dramatic mood effects</b> <i>(new in 1.0.10)</i> — fire/ice halos, zigzag lightning bolts, rate-scaled rain",
             "<b>7-day Forecast</b> + <b>Sun / Moon</b> (locally computed)",
             "Air Quality, Soil, Leak — auto-populate on sensor detect",
         ]),
@@ -167,10 +169,10 @@ def build():
         Paragraph("Ham-radio overlays", S_H2),
         *bullets([
             "<b>HF Propagation</b> — SFI, K/A, band-condition grid, G-scale badge",
-            "<b>Space Weather</b> — 72 h Kp forecast, 24-bar chart, G-scale peak",
+            "<b>Space Weather</b> — 72 h Kp forecast + aurora ribbons at G4/G5",
             "<b>Satellites</b> — 13 birds, SGP4 pass prediction via Celestrak TLEs",
-            "\"Unplug the Rig!\" lightning pulse, \"Antenna Swayer!\" at 50 mph+",
-            "Pressure mood shifts to \"Storm Brewing ⛈\" as the bottom drops out",
+            "\"Unplug the Rig!\" lightning panic, \"Antenna Swayer!\" needle wobble",
+            "<b>Tile Personality</b> <i>(new in 1.0.10)</i> — configurable mood thresholds",
         ]),
     ]
     two_col = Table([[left, right]],
@@ -245,16 +247,21 @@ def build():
          Paragraph("<b>Provider</b>", S_CELL_HEAD),
          Paragraph("<b>Feed</b>",     S_CELL_HEAD)],
         [Paragraph("United States", S_CELL),
-         Paragraph("National Weather Service (NWS)", S_CELL),
-         Paragraph("api.weather.gov CAP alerts", S_CELL)],
+         Paragraph('<link href="https://www.weather.gov" color="#1d4ed8">'
+                   'National Weather Service (NWS)</link>', S_CELL),
+         Paragraph('<link href="https://api.weather.gov" color="#1d4ed8">'
+                   'api.weather.gov</link> CAP alerts', S_CELL)],
         [Paragraph("Canada", S_CELL),
-         Paragraph("Environment and Climate Change Canada", S_CELL),
+         Paragraph('<link href="https://weather.gc.ca" color="#1d4ed8">'
+                   'Environment and Climate Change Canada</link>', S_CELL),
          Paragraph("Public CAP feed per province", S_CELL)],
         [Paragraph("Europe", S_CELL),
-         Paragraph("MeteoAlarm", S_CELL),
+         Paragraph('<link href="https://meteoalarm.org" color="#1d4ed8">'
+                   'MeteoAlarm</link>', S_CELL),
          Paragraph("Pan-European severe-weather aggregator", S_CELL)],
         [Paragraph("Australia", S_CELL),
-         Paragraph("Bureau of Meteorology", S_CELL),
+         Paragraph('<link href="http://www.bom.gov.au" color="#1d4ed8">'
+                   'Bureau of Meteorology</link>', S_CELL),
          Paragraph("Public warnings feed per state", S_CELL)],
     ]
     at = Table(alert_data, colWidths=[1.2 * inch, 2.3 * inch, 3.9 * inch])
@@ -273,8 +280,10 @@ def build():
     # ---------- How to get it -------------------------------------
     story.append(Paragraph("How to obtain it", S_H2))
     story.append(Paragraph(
-        "<b>Windows:</b> download the latest <i>HamRadioWeather-Setup-X.Y.Z.exe</i> installer from "
-        "<b>github.com/N8SDR1/ham-radio-weather/releases</b>. Per-user install, no admin "
+        '<b>Windows:</b> download the latest <i>HamRadioWeather-Setup-X.Y.Z.exe</i> installer from '
+        '<link href="https://github.com/N8SDR1/ham-radio-weather/releases" color="#1d4ed8">'
+        '<b><u>github.com/N8SDR1/ham-radio-weather/releases</u></b></link>. '
+        'Per-user install, no admin '
         "required. Accept the disclaimer on first run, pick your station (or None mode), and "
         "go. &nbsp;&nbsp; <b>macOS / Linux:</b> runs from source with Python 3.11+ — see the "
         "project README. &nbsp;&nbsp; <b>License:</b> free and open source; optional PayPal "

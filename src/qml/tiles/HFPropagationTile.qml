@@ -16,11 +16,51 @@ Tile {
     readonly property var _mood: App.Moods.hfProp(sfi)
     readonly property var _storm: App.Moods.geoStorm(kidx)
 
+    // Geomagnetic storms at G3+ (K-index ≥ 7) cause HF blackouts. When
+    // that's happening, overlay a drifting horizontal-line "static"
+    // pattern across the tile — subtle interference to match the mood
+    // without blocking the data.
+    readonly property bool _blackout:
+        App.AppSettings.effectForceStatic || kidx >= 7
+
     title:       hasData ? _mood.title : "HF Propagation"
     iconEmoji:   hasData ? _mood.icon  : "📡"
     accentColor: App.Theme.accent2
 
     implicitHeight: 280
+
+    // Static overlay — thin horizontal lines drifting vertically across
+    // the tile. Low opacity so it reads as interference, not obstruction.
+    Item {
+        id: staticLayer
+        anchors.fill: parent
+        z: 9
+        visible: root._blackout
+        clip: true
+
+        Repeater {
+            model: 9
+            delegate: Rectangle {
+                readonly property int _dur: 1100 + (index * 170)
+                width:  parent.width
+                height: (index % 3 === 0) ? 2 : 1
+                color:  App.Theme.bad
+                opacity: 0.22
+                y: parent.height
+                SequentialAnimation on y {
+                    running: staticLayer.visible
+                    loops:   Animation.Infinite
+                    PauseAnimation  { duration: index * 150 }
+                    NumberAnimation {
+                        from: staticLayer.height + 4
+                        to: -4
+                        duration: _dur
+                        easing.type: Easing.Linear
+                    }
+                }
+            }
+        }
+    }
 
     readonly property var _bandOrder: ["80m-40m", "30m-20m", "17m-15m", "12m-10m"]
 

@@ -26,7 +26,7 @@ LOGO_PATH    = PROJECT_ROOT / "assets" / "wxham_clean.png"
 if not LOGO_PATH.exists():
     LOGO_PATH = PROJECT_ROOT / "assets" / "wxham.png"
 
-APP_VERSION = "1.0.9"
+APP_VERSION = "1.0.10"
 
 # ----------------------------------------------------------------------
 # Palette (matches the dashboard's dark theme accents, but print-friendly)
@@ -130,10 +130,33 @@ def page_frame(canvas, doc):
                 LETTER[0] - 0.75 * inch, 0.55 * inch)
     canvas.setFont("Helvetica-Oblique", 8.5)
     canvas.setFillColor(MUTED)
-    canvas.drawCentredString(LETTER[0] / 2.0, 0.38 * inch,
-        "Built by a fellow ham, for the community.  "
-        "github.com/N8SDR1/ham-radio-weather   ·  73 de N8SDR")
-    canvas.drawRightString(LETTER[0] - 0.75 * inch, 0.38 * inch,
+    footer_text = ("Built by a fellow ham, for the community.  "
+                   "github.com/N8SDR1/ham-radio-weather   ·  73 de N8SDR")
+    footer_y = 0.38 * inch
+    footer_center_x = LETTER[0] / 2.0
+    canvas.drawCentredString(footer_center_x, footer_y, footer_text)
+
+    # Clickable hyperlink over the GitHub URL inside the footer text.
+    # We measure just the URL substring so the click target is tight
+    # instead of covering the whole footer line.
+    url_text = "github.com/N8SDR1/ham-radio-weather"
+    url_width = canvas.stringWidth(url_text, "Helvetica-Oblique", 8.5)
+    full_width = canvas.stringWidth(footer_text, "Helvetica-Oblique", 8.5)
+    footer_left_x = footer_center_x - full_width / 2.0
+    url_offset = canvas.stringWidth(
+        "Built by a fellow ham, for the community.  ",
+        "Helvetica-Oblique", 8.5,
+    )
+    url_x1 = footer_left_x + url_offset
+    url_x2 = url_x1 + url_width
+    canvas.linkURL(
+        "https://github.com/N8SDR1/ham-radio-weather",
+        (url_x1, footer_y - 2, url_x2, footer_y + 9),
+        relative=0,
+        thickness=0,
+    )
+
+    canvas.drawRightString(LETTER[0] - 0.75 * inch, footer_y,
                            f"Page {doc.page}")
     canvas.restoreState()
 
@@ -247,7 +270,9 @@ def build():
         "Dark, light and auto (OS-following) themes with a custom accent palette.",
         "°F / °C toggle and Imperial/Metric unit switching in a single click.",
         "Drag-to-reorder tiles, per-tile Small / Medium / Large / XL sizing, and persistent layout across sessions.",
-        "<b>24-hour sparkline trend charts</b> <i>(new in 1.0.9)</i> under the main value on the Outdoor, Humidity, and Pressure tiles. Toggleable in Settings → Appearance; line color configurable (per-tile accent or uniform red).",
+        "<b>24-hour sparkline trend charts</b> under the main value on the Outdoor, Humidity, and Pressure tiles — now available on both Ambient <i>and</i> Ecowitt stations <i>(new in 1.0.10)</i>.",
+        "<b>Tile Personality</b> <i>(new in 1.0.10)</i> — every user-facing mood trigger is now tunable: Outdoor fire/ice temperatures, Shack Hell Mode, Lightning panic distance, Wind Antenna Swayer gust threshold.",
+        "<b>Dramatic mood effects</b> <i>(new in 1.0.10)</i> — tiles come alive when conditions match: flickering fire halos on hot temps, pulsing ice for cold, animated lightning bolts behind the Lightning tile during nearby strikes, falling rain drops that scale with the actual hourly rate, rotating sunbursts at Supernova solar levels, aurora ribbons at G4/G5 geomagnetic storms, and more. Preview toggles in Settings so every effect can be seen on demand.",
         "Configurable alert thresholds (heat, freeze, high wind, damaging gust, heavy rain, flash flood, lightning nearby, fire weather, shack overheat).",
         "In-app disclaimer gate on first run; built-in Help guide and About dialog.",
         "Header badges: live-feed pulse dot, active-source pill (ONLINE / AMBIENT / ECOWITT), sensor-battery indicator and active-alert counter.",
@@ -356,16 +381,21 @@ def build():
          Paragraph("<b>Provider</b>", S_CELL_BOLD),
          Paragraph("<b>Feed</b>",     S_CELL_BOLD)],
         [Paragraph("<b>United States</b>", S_CELL),
-         Paragraph("National Weather Service (NWS)", S_CELL),
-         Paragraph("api.weather.gov — CAP alerts by state/zone", S_CELL)],
+         Paragraph('<link href="https://www.weather.gov" color="#1d4ed8">'
+                   'National Weather Service (NWS)</link>', S_CELL),
+         Paragraph('<link href="https://api.weather.gov" color="#1d4ed8">'
+                   'api.weather.gov</link> — CAP alerts by state/zone', S_CELL)],
         [Paragraph("<b>Canada</b>", S_CELL),
-         Paragraph("Environment and Climate Change Canada", S_CELL),
+         Paragraph('<link href="https://weather.gc.ca" color="#1d4ed8">'
+                   'Environment and Climate Change Canada</link>', S_CELL),
          Paragraph("Public weather-alert CAP feed per province", S_CELL)],
         [Paragraph("<b>Europe</b>", S_CELL),
-         Paragraph("MeteoAlarm", S_CELL),
+         Paragraph('<link href="https://meteoalarm.org" color="#1d4ed8">'
+                   'MeteoAlarm</link>', S_CELL),
          Paragraph("Pan-European severe-weather CAP aggregator", S_CELL)],
         [Paragraph("<b>Australia</b>", S_CELL),
-         Paragraph("Bureau of Meteorology (BoM)", S_CELL),
+         Paragraph('<link href="http://www.bom.gov.au" color="#1d4ed8">'
+                   'Bureau of Meteorology (BoM)</link>', S_CELL),
          Paragraph("Public warnings feed per state", S_CELL)],
     ]
     t2 = Table(alert_data, colWidths=[1.5 * inch, 2.4 * inch, 3.0 * inch])
@@ -396,8 +426,9 @@ def build():
     story.append(Paragraph("How to obtain it", S_H2))
     story.append(Paragraph("Windows end users", S_H3))
     story.extend(bullets([
-        "Visit the project's GitHub Releases page: "
-        "<b>github.com/N8SDR1/ham-radio-weather/releases</b>",
+        'Visit the project\'s GitHub Releases page: '
+        '<link href="https://github.com/N8SDR1/ham-radio-weather/releases" color="#1d4ed8">'
+        '<b><u>github.com/N8SDR1/ham-radio-weather/releases</u></b></link>',
         "Download the latest <i>HamRadioWeather-Setup-X.Y.Z.exe</i> installer.",
         "Run the installer (per-user, no admin privileges required).",
         "Launch from the desktop shortcut or Start menu, accept the disclaimer on first run, "

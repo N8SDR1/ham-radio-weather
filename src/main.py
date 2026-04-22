@@ -29,7 +29,7 @@ from api.space_weather import SpaceWeatherClient
 from api.updates import UpdateChecker
 from config import Config
 
-APP_VERSION = "1.0.9"
+APP_VERSION = "1.0.10"
 
 logger = logging.getLogger(__name__)
 

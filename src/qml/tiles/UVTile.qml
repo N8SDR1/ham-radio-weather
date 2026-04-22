@@ -24,17 +24,74 @@ Tile {
 
     implicitHeight: 280
 
+    // Face Melter territory = UV >= 11 (or the preview toggle). Add
+    // a heat-shimmer effect: subtle warm horizontal bands scrolling
+    // upward behind the big number.
+    readonly property bool _faceMelter:
+        App.AppSettings.effectForceFaceMelt || uv >= 11
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 4
 
-        BigNumber {
+        // Heat-shimmer wrapper — number sits inside, scrolling bands
+        // behind give the "rising heat waves" impression without needing
+        // a proper shader. Only active at Face Melter levels.
+        Item {
             Layout.alignment: Qt.AlignHCenter
-            text: isNaN(root.uv) ? "—" : root.uv.toFixed(0)
-            color: root.accentColor
-            glowColor: root.accentColor
-            glowOpacity: 0.85
-            pixelSize: 90
+            implicitWidth:  uvNum.implicitWidth
+            implicitHeight: uvNum.implicitHeight
+            clip: true
+
+            Item {
+                id: heatLayer
+                anchors.fill: parent
+                visible: root._faceMelter
+                Repeater {
+                    model: 5
+                    delegate: Rectangle {
+                        readonly property int _offset: index * 24
+                        readonly property int _dur:    2400 + index * 300
+                        width:  parent.width
+                        height: 1
+                        radius: 0
+                        color:  App.Theme.hot
+                        opacity: 0.28
+                        y: parent.height
+                        SequentialAnimation on y {
+                            running: heatLayer.visible
+                            loops:   Animation.Infinite
+                            PauseAnimation  { duration: index * 400 }
+                            NumberAnimation {
+                                from: heatLayer.height + 4
+                                to: -4
+                                duration: _dur
+                                easing.type: Easing.Linear
+                            }
+                        }
+                    }
+                }
+            }
+
+            BigNumber {
+                id: uvNum
+                anchors.centerIn: parent
+                text: isNaN(root.uv) ? "—" : root.uv.toFixed(0)
+                color: root.accentColor
+                glowColor: root.accentColor
+                glowOpacity: 0.85
+                pixelSize: 90
+
+                // Tiny horizontal shimmer on the number itself at Face Melter
+                // — mimics the "air is wavy" illusion on blistering days.
+                SequentialAnimation on x {
+                    running: root._faceMelter
+                    loops:   Animation.Infinite
+                    NumberAnimation { to:  1; duration: 220; easing.type: Easing.InOutSine }
+                    NumberAnimation { to: -1; duration: 260; easing.type: Easing.InOutSine }
+                    NumberAnimation { to:  0; duration: 200; easing.type: Easing.InOutSine }
+                }
+            }
         }
 
         Label {

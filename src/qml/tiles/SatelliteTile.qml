@@ -96,6 +96,7 @@ Tile {
                     Layout.fillWidth: true
                 }
                 Label {
+                    id: countdownLabel
                     text: root.nextIsNow
                         ? "Now at " + (root.nextPass ? root.nextPass.current_el : 0) + "°"
                         : root.fmtMinutes(root.minsUntil(root.nextPass ? root.nextPass.aos : null))
@@ -103,6 +104,32 @@ Tile {
                     font.pixelSize: 28
                     font.weight: Font.Bold
                     font.family: App.Theme.displayFont
+
+                    // Imminent-pass pulse: when the next bird is within
+                    // 10 minutes, the countdown gently breathes green
+                    // so it catches your eye across the room. Falls
+                    // back to static display otherwise.
+                    readonly property int _minsLeft: {
+                        if (root.nextIsNow) return -1
+                        var m = root.minsUntil(root.nextPass ? root.nextPass.aos : null)
+                        return (m === null) ? 999 : m
+                    }
+                    readonly property bool _imminent:
+                        App.AppSettings.effectForceCountdown ||
+                        (_minsLeft >= 0 && _minsLeft <= 10)
+
+                    SequentialAnimation on opacity {
+                        running: countdownLabel._imminent
+                        loops:   Animation.Infinite
+                        NumberAnimation { to: 0.55; duration: 900; easing.type: Easing.InOutSine }
+                        NumberAnimation { to: 1.0;  duration: 900; easing.type: Easing.InOutSine }
+                    }
+                    SequentialAnimation on scale {
+                        running: countdownLabel._imminent
+                        loops:   Animation.Infinite
+                        NumberAnimation { to: 1.05; duration: 900; easing.type: Easing.InOutSine }
+                        NumberAnimation { to: 1.00; duration: 900; easing.type: Easing.InOutSine }
+                    }
                 }
             }
 

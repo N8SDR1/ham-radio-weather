@@ -629,6 +629,293 @@ Dialog {
                 }
             }
 
+            // Tile Personality — mood/effect thresholds + dev-test forces
+            GroupBox {
+                Layout.fillWidth: true
+                label: Label {
+                    text: "TILE PERSONALITY"
+                    color: App.Theme.textFaint
+                    font.pixelSize: 11
+                    font.letterSpacing: 1.2
+                    font.weight: Font.Bold
+                }
+                background: Rectangle {
+                    color: "transparent"
+                    border.color: App.Theme.border
+                    radius: 8
+                }
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    spacing: 8
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: "Tune when the big-number tiles switch into dramatic mood. "
+                            + "Fire = flickering yellow/orange/red halo. Ice = pulsing cyan/white. "
+                            + "Strobe = Lightning \"Unplug the Rig!\" panic with rotating titles."
+                        color: App.Theme.textDim
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+
+                    // ---- Outdoor ----
+                    Label {
+                        text: "Outdoor tile"
+                        color: App.Theme.text
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        Layout.topMargin: 4
+                    }
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 3
+                        columnSpacing: 10
+                        rowSpacing: 6
+
+                        Label { text: "Fire ≥";     color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: -20; to: 130
+                            value: App.AppSettings.moodOutdoorFireF
+                            onValueModified: App.AppSettings.moodOutdoorFireF = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "°F";         color: App.Theme.textFaint; font.pixelSize: 12 }
+
+                        Label { text: "Ice ≤";      color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: -40; to: 80
+                            value: App.AppSettings.moodOutdoorIceF
+                            onValueModified: App.AppSettings.moodOutdoorIceF = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "°F";         color: App.Theme.textFaint; font.pixelSize: 12 }
+                    }
+
+                    // ---- Shack ----
+                    Label {
+                        text: "Shack (Indoor) tile"
+                        color: App.Theme.text
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        Layout.topMargin: 4
+                    }
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 3
+                        columnSpacing: 10
+                        rowSpacing: 6
+
+                        Label { text: "Hell Mode ≥";   color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: 60; to: 130
+                            value: App.AppSettings.moodShackHellF
+                            onValueModified: App.AppSettings.moodShackHellF = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "°F"; color: App.Theme.textFaint; font.pixelSize: 12 }
+
+                        Label { text: "Heating ≥";     color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: 40; to: 100
+                            value: App.AppSettings.moodShackHeatingF
+                            onValueModified: App.AppSettings.moodShackHeatingF = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "°F"; color: App.Theme.textFaint; font.pixelSize: 12 }
+
+                        Label { text: "Frozen Shack ≤"; color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: 20; to: 80
+                            value: App.AppSettings.moodShackFrozenF
+                            onValueModified: App.AppSettings.moodShackFrozenF = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "°F"; color: App.Theme.textFaint; font.pixelSize: 12 }
+                    }
+                    Label {
+                        visible: !(App.AppSettings.moodShackFrozenF
+                                 < App.AppSettings.moodShackHeatingF
+                                 && App.AppSettings.moodShackHeatingF
+                                 < App.AppSettings.moodShackHellF)
+                        text: "⚠ Shack thresholds overlap — the ladder wants "
+                            + "Frozen < Heating < Hell. Mood may behave oddly."
+                        color: App.Theme.warn
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                    }
+
+                    // ---- Lightning ----
+                    Label {
+                        text: "Lightning tile"
+                        color: App.Theme.text
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        Layout.topMargin: 4
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+                        Label { text: "\"Unplug the Rig!\" panic <"
+                              ; color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: 1; to: 100
+                            value: App.AppSettings.moodLightningPanicMi
+                            onValueModified: App.AppSettings.moodLightningPanicMi = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "mi"; color: App.Theme.textFaint; font.pixelSize: 12 }
+                        Item { Layout.fillWidth: true }
+                    }
+
+                    // ---- Wind ----
+                    Label {
+                        text: "Wind tile"
+                        color: App.Theme.text
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        Layout.topMargin: 4
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+                        Label { text: "\"Antenna Swayer!\" gust ≥"
+                              ; color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: 20; to: 120
+                            value: App.AppSettings.moodWindSwayerMph
+                            onValueModified: App.AppSettings.moodWindSwayerMph = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "mph"; color: App.Theme.textFaint; font.pixelSize: 12 }
+                        Item { Layout.fillWidth: true }
+                    }
+
+                    // ---- Dev / preview toggles ----
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 8
+                        height: 1
+                        color: App.Theme.border
+                        opacity: 0.4
+                    }
+                    Label {
+                        text: "Preview effects (force on regardless of weather)"
+                        color: App.Theme.textDim
+                        font.pixelSize: 11
+                        font.italic: true
+                        Layout.topMargin: 2
+                    }
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 4
+                        columnSpacing: 14
+                        rowSpacing: 4
+
+                        CheckBox {
+                            checked: App.AppSettings.effectForceFire
+                            text: "🔥 Fire"
+                            onToggled: App.AppSettings.effectForceFire = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceIce
+                            text: "🧊 Ice"
+                            onToggled: App.AppSettings.effectForceIce = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceStrobe
+                            text: "⚡ Strobe"
+                            onToggled: App.AppSettings.effectForceStrobe = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceRain
+                            text: "💧 Rain"
+                            onToggled: App.AppSettings.effectForceRain = checked
+                        }
+
+                        CheckBox {
+                            checked: App.AppSettings.effectForceSwayer
+                            text: "📡 Antenna"
+                            onToggled: App.AppSettings.effectForceSwayer = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceSunburst
+                            text: "☀ Sunburst"
+                            onToggled: App.AppSettings.effectForceSunburst = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceFaceMelt
+                            text: "🥵 Heat wave"
+                            onToggled: App.AppSettings.effectForceFaceMelt = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceStatic
+                            text: "📻 HF static"
+                            onToggled: App.AppSettings.effectForceStatic = checked
+                        }
+
+                        CheckBox {
+                            checked: App.AppSettings.effectForceCountdown
+                            text: "🛰 Sat pulse"
+                            onToggled: App.AppSettings.effectForceCountdown = checked
+                        }
+                        CheckBox {
+                            checked: App.AppSettings.effectForceAurora
+                            text: "🌌 Aurora"
+                            onToggled: App.AppSettings.effectForceAurora = checked
+                        }
+                        Item { Layout.fillWidth: true; Layout.columnSpan: 2 }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 2
+                        Button {
+                            text: "All off"
+                            enabled: App.AppSettings.effectForceFire
+                                   || App.AppSettings.effectForceIce
+                                   || App.AppSettings.effectForceStrobe
+                                   || App.AppSettings.effectForceRain
+                                   || App.AppSettings.effectForceSwayer
+                                   || App.AppSettings.effectForceSunburst
+                                   || App.AppSettings.effectForceFaceMelt
+                                   || App.AppSettings.effectForceStatic
+                                   || App.AppSettings.effectForceCountdown
+                                   || App.AppSettings.effectForceAurora
+                            onClicked: {
+                                App.AppSettings.effectForceFire      = false
+                                App.AppSettings.effectForceIce       = false
+                                App.AppSettings.effectForceStrobe    = false
+                                App.AppSettings.effectForceRain      = false
+                                App.AppSettings.effectForceSwayer    = false
+                                App.AppSettings.effectForceSunburst  = false
+                                App.AppSettings.effectForceFaceMelt  = false
+                                App.AppSettings.effectForceStatic    = false
+                                App.AppSettings.effectForceCountdown = false
+                                App.AppSettings.effectForceAurora    = false
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        text: "Toggles above force the effect on all relevant tiles "
+                            + "regardless of current readings. Leave them off for normal use."
+                        color: App.Theme.textFaint
+                        font.pixelSize: 10
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+
             // Battery Status
             GroupBox {
                 Layout.fillWidth: true

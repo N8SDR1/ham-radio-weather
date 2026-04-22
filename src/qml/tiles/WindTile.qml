@@ -4,6 +4,10 @@ import QtQuick.Layouts
 import QtQuick.Shapes
 import "../" as App
 
+// Note: the "Antenna Swayer!" mood trigger and the needle wobble both
+// read from App.AppSettings.moodWindSwayerMph so the title change and
+// the visual effect stay locked together.
+
 Tile {
     id: root
     property var data: ({})
@@ -16,10 +20,19 @@ Tile {
     readonly property real dirDeg:   data.winddir || 0
     readonly property real maxScale: 40
 
+    // "Antenna Swayer!" kicks in off user-tunable gust threshold —
+    // gusts are what actually sway an antenna, not steady wind. Falls
+    // through to the regular Moods.wind() ladder (based on sustained
+    // speed) for every other tier.
+    readonly property bool _swayer:
+        App.AppSettings.effectForceSwayer ||
+        gustMph >= App.AppSettings.moodWindSwayerMph
     readonly property var _mood: App.Moods.wind(speedMph)
-    title:       _mood.title
-    iconEmoji:   _mood.icon
-    accentColor: speedMph >= 35 ? App.Theme.warn : App.Theme.accent
+    title:       _swayer ? "Antenna Swayer!" : _mood.title
+    iconEmoji:   _swayer ? "📡"              : _mood.icon
+    accentColor: _swayer ? App.Theme.bad
+               : speedMph >= 35 ? App.Theme.warn
+               : App.Theme.accent
 
     function dirLabel(deg) {
         var names = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
@@ -115,6 +128,31 @@ Tile {
 
                 readonly property real cx: width / 2
                 readonly property real cy: height / 2
+
+                // Flutter offset applied on TOP of `rotation` via a
+                // separate transform so it doesn't fight the Behavior
+                // that smooths the base direction changes.
+                property real wobbleAngle: 0
+                transform: Rotation {
+                    angle: needle.wobbleAngle
+                    origin.x: needle.cx
+                    origin.y: needle.cy
+                }
+
+                // Needle flutters when the tile is in Antenna Swayer
+                // territory. Irregular sequence so it looks like wind,
+                // not a metronome.
+                SequentialAnimation on wobbleAngle {
+                    running: root._swayer
+                    loops:   Animation.Infinite
+                    NumberAnimation { to:  4.5; duration: 130; easing.type: Easing.OutSine }
+                    NumberAnimation { to: -5.5; duration: 170; easing.type: Easing.InOutSine }
+                    NumberAnimation { to:  2.5; duration: 110; easing.type: Easing.OutSine }
+                    NumberAnimation { to: -3.5; duration: 150; easing.type: Easing.InOutSine }
+                    NumberAnimation { to:  1.5; duration: 100; easing.type: Easing.OutSine }
+                    NumberAnimation { to:  0.0; duration: 180; easing.type: Easing.InOutSine }
+                    PauseAnimation  { duration: 140 }
+                }
                 // keep the needle well inside the ring (inner gauge has thickness 8)
                 readonly property real tipR: compass.ringR - 22
 

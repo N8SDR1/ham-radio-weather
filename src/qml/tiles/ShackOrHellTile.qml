@@ -9,13 +9,17 @@ Tile {
 
     readonly property real tempIn: data.tempinf !== undefined ? data.tempinf : NaN
 
-    // dynamic personality: the hotter the shack, the more "hell" it becomes
+    // Dynamic personality — tunable in Settings → Tile Personality so
+    // hams can match the drama to their shack climate. Dev-test toggles
+    // in the same section force a specific mood regardless of temp.
     readonly property int mood: {
+        if (App.AppSettings.effectForceFire) return 3
+        if (App.AppSettings.effectForceIce)  return 0
         if (isNaN(tempIn)) return 1
-        if (tempIn >= 85)  return 3   // HELL
-        if (tempIn >= 78)  return 2   // hot
-        if (tempIn <= 55)  return 0   // frozen shack
-        return 1                       // normal shack
+        if (tempIn >= App.AppSettings.moodShackHellF)    return 3   // HELL
+        if (tempIn >= App.AppSettings.moodShackHeatingF) return 2   // hot
+        if (tempIn <= App.AppSettings.moodShackFrozenF)  return 0   // frozen shack
+        return 1                                                     // normal shack
     }
 
     title: ["Frozen Shack", "Shack", "Shack's Heating", "Hell Mode"][mood]
@@ -38,17 +42,18 @@ Tile {
                 font.letterSpacing: 1.0
                 font.weight: Font.Bold
             }
-            Text {
+            BigNumber {
                 id: bigTemp
                 text: App.Units.fmt(App.Units.tempF(root.tempIn), 1)
                 color: root.accentColor
-                font.family: App.Theme.displayFont
-                font.pixelSize: 58
-                font.weight: Font.Bold
-                font.styleName: "SemiBold SemiCondensed"
-                style: Text.Outline
-                styleColor: Qt.rgba(1, 1, 1, 0.15)
-                renderType: Text.NativeRendering
+                glowColor: root.accentColor
+                glowOpacity: 0.8
+                pixelSize: 58
+                // Fire = Hell Mode (>=85°F). Ice = Frozen Shack (<=55°F).
+                // Middle tiers stay neutral.
+                moodEffect: root.mood === 3 ? "fire"
+                          : root.mood === 0 ? "ice"
+                          : ""
             }
             Label {
                 text: App.Units.tempUnit()

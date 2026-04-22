@@ -3,6 +3,42 @@
 All notable changes to Ham Radio Weather Dashboard are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.10] — 2026-04-21
+
+### Added — Ecowitt feature parity
+- **Ecowitt history plumbing** — `EcowittClient` now pulls 24 hours of 5-minute history from `api.ecowitt.net/api/v3/device/history` every 20 minutes, pivots the nested response into the same newest-first record shape `AmbientClient` produces, and feeds the same `_compute_history_derived()` logic. Ecowitt users now get the full Tier-1 experience: **24-hour sparklines** on Outdoor / Humidity / Pressure tiles, **3-hour pressure trend arrow**, and the **"From Yesterday" humidity delta**. Parity with Ambient at last.
+
+### Added — Tile Personality (user-configurable mood thresholds)
+New **Settings → Tile Personality** section. Every user-facing mood trigger is now tunable. Defaults match v1.0.9 behavior; change them to suit your climate and shack.
+- **Outdoor**: Fire ≥ X °F, Ice ≤ X °F (drive both the tile color palette and the fire/ice halo)
+- **Shack (Indoor)**: Hell Mode ≥ X °F, Heating ≥ X °F, Frozen Shack ≤ X °F (with warning label when the ladder gets out of order)
+- **Lightning**: "Unplug the Rig!" panic distance (shared with the Lightning Nearby alert threshold so the mood and alert stay in lockstep)
+- **Wind**: "Antenna Swayer!" gust threshold (drives both the mood title flip and the needle wobble)
+
+### Added — Dramatic mood effects
+Reach-for-your-screenshot moments when conditions get spicy. Every effect has a **"Preview effects"** force toggle in the same Settings panel so you can see them on a calm day without waiting for weather.
+- **🔥 Fire** — flickering yellow/orange/red halo + orange digits on Outdoor and Shack tiles when hot. Irregular color/blur cycle (~1.3 s) reads as a live flame.
+- **🧊 Ice** — slower cyan/white pulse + blue digits for Deep Freeze / Frozen Shack. Glaciers don't twitch.
+- **⚡ Lightning** — when strikes are within panic distance:
+  - **Three zigzag bolts** (lavender stroke, indigo halo) flash behind the tile with different cycle lengths (10 / 12 / 15 s) so they naturally phase in and out of alignment — sometimes a lone bolt, sometimes two overlap briefly, sometimes quiet.
+  - **Strike count scale punch + horizontal jitter + afterglow-white strobe** on the big number. Panic title rotates every 2.2 s through "Unplug the Rig!" → "NO SERIOUSLY UNPLUG" → "⚡ THE RIG! ⚡" → "SAVE YOURSELF" → "The antenna! THE ANTENNA!".
+- **💧 Rain** — 5 independent drop lanes, each with its own re-seeded cycle (x position, fall time, rest period, horizontal wind-drift) so drops hit irregular spots at irregular intervals. Splashes fan outward at the bottom of the tile. **Animation speed scales with the actual hourly rain rate** (sprinkle = slow drift, clamped at 0.75 in/hr = frantic downpour).
+- **📡 Antenna Swayer** — wind-direction needle flutters ±5° with an irregular sequence when gusts cross the threshold. Doesn't fight the smooth direction tracking.
+- **☀ Sunburst** — 12 ray spokes slowly rotating behind the Solar tile's number when W/m² ≥ 900 (Supernova). Each ray breathes independently for a shimmering effect.
+- **🥵 Heat wave** — upward-drifting red horizontal bands + tiny horizontal shimmer on the digit when UV ≥ 11 (Face Melter).
+- **📻 HF static** — drifting red scanline overlay on the HF Propagation tile during G3+ geomagnetic storms (K-index ≥ 7). Subtle interference that reads as "bands are degraded".
+- **🛰 Sat countdown pulse** — gentle opacity + scale breathing on the countdown label when the next satellite pass is within 10 minutes.
+- **🌌 Aurora** — slow-drifting green + violet gradient ribbons in the Space Weather tile background at G4/G5 (peak Kp ≥ 8).
+
+### Technical
+- New reusable `GlowEmoji` wrapper from v1.0.9 continues to serve; new effects use a combination of `QML.Shape` + `MultiEffect` + `SequentialAnimation` patterns that can be reused across tiles.
+- Signal shape for `historyUpdated` unified across Ambient + Ecowitt + NoStation — QML binds regardless of station brand.
+- All preview toggles persist in QSettings but default to off on first launch.
+
+### Known limitations
+- Ecowitt history only the first time: requires up to 10 s after startup before the history-derived fields (humidity delta, pressure arrow, sparklines) appear. Normal — same behavior as Ambient.
+- Pressure trend ±0.02 inHg / 3 h deadband is currently a fixed constant (not user-exposed). Left as a calibration parameter we'll tune in code if field testing shows it needs it — not something to burden users with.
+
 ## [1.0.9] — 2026-04-21
 
 ### Added

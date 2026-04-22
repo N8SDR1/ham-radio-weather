@@ -33,6 +33,55 @@ Settings {
     //              maximum visibility / alert-style contrast.
     property string sparklineColor: "accent"
 
+    // --- Tile Personality -----------------------------------------------
+    // User-configurable mood/effect thresholds. These let operators tune
+    // the dashboard's dramatic flair to their shack and climate — a Phoenix
+    // ham might put Hell Mode at 95 °F, a Minnesotan might set it at 78.
+    // Also makes it easy to fake-trigger the fire/ice/strobe effects for
+    // testing by dialing a threshold down to your current conditions.
+
+    // Outdoor tile fire effect — animated flickering yellow/orange/red halo
+    // on the big temperature readout when it's this hot or hotter.
+    property real   moodOutdoorFireF: 85
+    // Outdoor tile ice effect — slower cyan/white pulse when it's this cold
+    // or colder.
+    property real   moodOutdoorIceF: 20
+
+    // Shack (Indoor) tile — drives BOTH the mood ladder (Frozen Shack →
+    // Shack → Heating → Hell Mode) AND the fire/ice halo effect.
+    // Validation in SettingsDialog: frozen < heating < hell.
+    property real   moodShackHellF:    85
+    property real   moodShackHeatingF: 78
+    property real   moodShackFrozenF:  55
+
+    // Lightning tile — distance (mi) at which the tile flips to full
+    // "Unplug the Rig!" panic mode: red accent, strobing halo on the
+    // strike count, rotating increasingly-frantic titles. Also the value
+    // shown as the default threshold for the Lightning Nearby alert
+    // (Settings → Alerts) so the tile and alert stay in lockstep.
+    property real   moodLightningPanicMi: 5
+
+    // Wind tile — gust speed (mph) at which the needle starts wobbling
+    // and the mood title flips to "Antenna Swayer!". Set lower if your
+    // Yagi is tall and flexy, higher if you've got a sturdy tower.
+    property real   moodWindSwayerMph: 50
+
+    // Dev / preview toggles. Checking any of these forces the
+    // corresponding dramatic effect regardless of real data — handy for
+    // tuning flicker timing / colors without waiting for real weather.
+    // These are NOT meant to be left on in normal use; the Settings UI
+    // calls them out in a clearly marked "preview" group.
+    property bool   effectForceFire:    false
+    property bool   effectForceIce:     false
+    property bool   effectForceStrobe:  false
+    property bool   effectForceRain:    false
+    property bool   effectForceSwayer:  false   // wind needle wobble
+    property bool   effectForceSunburst:false   // solar sunburst rays
+    property bool   effectForceFaceMelt:false   // UV heat-wave ripple
+    property bool   effectForceStatic:  false   // HF propagation interference
+    property bool   effectForceCountdown:false  // satellite imminent-pass pulse
+    property bool   effectForceAurora:  false   // space weather aurora waves
+
     // Legal / liability — app does not operate until user accepts on first run
     property bool   disclaimerAccepted: false
 

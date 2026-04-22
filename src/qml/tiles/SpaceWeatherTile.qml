@@ -31,6 +31,83 @@ Tile {
 
     implicitHeight: 300
 
+    // G4/G5 geomagnetic storms (peak Kp >= 8) are rare enough that when
+    // they actually happen, the tile earns some extra drama: slow
+    // aurora-green/violet waves undulating in the background.
+    readonly property bool _aurora:
+        App.AppSettings.effectForceAurora || peakKp >= 8
+
+    Item {
+        id: auroraLayer
+        anchors.fill: parent
+        z: -1
+        visible: root._aurora
+        clip: true
+        opacity: 0.35
+
+        // Two slow-drifting color bands give a convincing undulating
+        // aurora ribbon without needing shaders. Different speeds +
+        // offsets so they never align the same way twice.
+        Rectangle {
+            id: auroraBand1
+            width:  parent.width * 1.4
+            height: 120
+            radius: 60
+            y: parent.height * 0.15
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.5; color: "#55ff9c" }   // aurora green
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+            NumberAnimation on x {
+                running: auroraLayer.visible
+                loops:   Animation.Infinite
+                from: -auroraBand1.width + auroraLayer.width
+                to:   auroraLayer.width
+                duration: 9000
+                easing.type: Easing.InOutSine
+            }
+            NumberAnimation on y {
+                running: auroraLayer.visible
+                loops:   Animation.Infinite
+                from: auroraLayer.height * 0.10
+                to:   auroraLayer.height * 0.40
+                duration: 7000
+                easing.type: Easing.InOutSine
+            }
+        }
+        Rectangle {
+            id: auroraBand2
+            width:  parent.width * 1.6
+            height: 100
+            radius: 50
+            y: parent.height * 0.55
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.5; color: "#8b5cf6" }   // aurora violet
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+            NumberAnimation on x {
+                running: auroraLayer.visible
+                loops:   Animation.Infinite
+                from: auroraLayer.width
+                to:   -auroraBand2.width + auroraLayer.width
+                duration: 11000
+                easing.type: Easing.InOutSine
+            }
+            NumberAnimation on y {
+                running: auroraLayer.visible
+                loops:   Animation.Infinite
+                from: auroraLayer.height * 0.70
+                to:   auroraLayer.height * 0.35
+                duration: 8500
+                easing.type: Easing.InOutSine
+            }
+        }
+    }
+
     function _kpColor(kp) {
         if (kp >= 7) return App.Theme.bad
         if (kp >= 5) return App.Theme.warn
