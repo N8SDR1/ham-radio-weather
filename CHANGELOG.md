@@ -3,6 +3,70 @@
 All notable changes to Ham Radio Weather Dashboard are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.11] — 2026-04-21
+
+### Fixed — Ecowitt unit conversion (high-priority bug)
+Discovered when an Australian Ecowitt user reported "conversion is not
+correct." `EcowittClient` was requesting the wrong unit IDs from the
+v3 API — every Ecowitt user (imperial AND metric) was seeing wrong
+numbers since v1.0.7 when Ecowitt support was added. The bug went
+unnoticed because no Ecowitt user had compared values against another
+display until this release.
+- **Root cause**: requested `temp_unitid=1` thinking it meant °F. It
+  actually means °C in Ecowitt's API. Same shape of mistake on
+  pressure (asked for 3=hPa instead of 4=inHg), wind (6=m/s instead of
+  9=mph), and rainfall (12=mm instead of 13=in).
+- **Effect on imperial users**: tile showed numerical value with
+  imperial unit label, but the value was the metric reading
+  (e.g. "20.2°F" instead of the correct "68.4°F"). Looked broken.
+- **Effect on metric users**: doubled-handled — the metric reading
+  flowed through the imperial→metric conversion layer, producing
+  wildly wrong values (e.g. "−6.6°C" instead of "20.2°C").
+- **Fix**: corrected unit IDs in both `_poll()` and `_fetch_history()`
+  (`temp_unitid=2`, `pressure_unitid=4`, `wind_unitid=9`,
+  `rainfall_unitid=13`; solar was already correct at `16=W/m²`).
+  Updated comments with the full Ecowitt ID legend so this doesn't
+  happen again.
+
+### Fixed — Lightning Nearby alert clearing too fast
+Reported during a live storm: alert flickered off between strikes
+because Ambient's `lightning_distance` field reflects only the latest
+strike (which can bounce 3 mi → 15 mi → 8 mi as the storm crosses).
+- **Fix**: alert is now "sticky" — once any strike lands within the
+  panic distance, the alert stays active for a configurable grace
+  window (default 15 minutes) even if subsequent strikes report
+  further away. Strike-freshness check via `lightning_time` prevents
+  stale strikes from re-arming the window indefinitely.
+- **New setting**: Settings → Tile Personality → Lightning tile →
+  "Hold alert for [N] min after last close strike". Default 15, range
+  0–120. Set 0 for strict per-strike behavior.
+
+### Fixed — Satellite countdown not actually counting down
+The big "in Xm" countdown was bound to `Date.now()` at evaluation time
+but had no time-based dependency, so QML only re-computed it when new
+TLE data arrived — meaning "in 15m" stayed on screen indefinitely.
+- **Fix**: adaptive ticking timer (30 s default, 1 s when next pass is
+  ≤ 2 min out). Every time-sensitive binding now references a `_tick`
+  property as a dependency.
+- **Bonus**: countdown now shows seconds when under 90 s out
+  ("in 42s" → "in 12s" → "now"), and during a live pass shows current
+  elevation + time-to-LOS ("At 45° · 3m left").
+- Pass-duration label relabeled `⏱ Pass Xm YYs` so it's not confused
+  with the countdown.
+
+### Fixed — Lightning "last strike Xm ago" frozen between updates
+Same staleness pattern as the satellite countdown. Now refreshes every
+30 seconds.
+
+### Updated — HelpDialog refresh
+Documentation caught up to v1.0.10's additions:
+- Tile entries now describe their dramatic effects (fire/ice halos,
+  lightning bolts, rain rate scaling, wind needle wobble, sunburst,
+  heat wave, HF static, satellite countdown pulse, aurora ribbons)
+- New Tile Personality + Preview Effects entries in the Controls tab
+- New "Lightning alert won't clear" troubleshooting entry
+- Sticky alert + Ecowitt parity notes added throughout
+
 ## [1.0.10] — 2026-04-21
 
 ### Added — Ecowitt feature parity

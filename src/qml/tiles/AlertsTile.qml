@@ -12,7 +12,10 @@ Tile {
 
     readonly property var active: {
         var _dep = App.AppSettings.alertsJson
-        return App.AlertRules.evaluate(data, App.AppSettings.getAlertSettings())
+        return App.AlertRules.evaluate(
+            data,
+            App.AppSettings.getAlertSettings(),
+            { lightningStickyMin: App.AppSettings.alertLightningStickyMin })
     }
     readonly property int activeCount: active.length
     readonly property bool hasWarning: {

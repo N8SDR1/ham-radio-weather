@@ -49,8 +49,20 @@ Tile {
         onTriggered: root._panicIdx = (root._panicIdx + 1) % root._panicTitles.length
     }
 
+    // Ticks every 30 s — any binding that depends on Date.now() must
+    // reference this to actually refresh over time. Without it, the
+    // "last strike Xm ago" label stays frozen between data updates.
+    property int _tick: 0
+    Timer {
+        interval: 30 * 1000
+        running:  true
+        repeat:   true
+        onTriggered: root._tick++
+    }
+
     // age of last strike in human terms
     function lastStrikeLabel() {
+        var _dep = root._tick     // re-evaluate each tick
         if (!lastStrike) return "—"
         var t = new Date(lastStrike)
         if (isNaN(t.getTime())) return "—"

@@ -482,7 +482,10 @@ ApplicationWindow {
                 id: alertBadge
                 readonly property var _thresholdActive: {
                     var _d = App.AppSettings.alertsJson
-                    return App.AlertRules.evaluate(root.latest, App.AppSettings.getAlertSettings())
+                    return App.AlertRules.evaluate(
+                        root.latest,
+                        App.AppSettings.getAlertSettings(),
+                        { lightningStickyMin: App.AppSettings.alertLightningStickyMin })
                 }
                 readonly property var _nwsActive: alertsClient.alerts || []
                 readonly property bool _hasWarning: {

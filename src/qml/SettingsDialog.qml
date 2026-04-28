@@ -775,6 +775,31 @@ Dialog {
                         Item { Layout.fillWidth: true }
                     }
 
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 10
+                        Label { text: "Hold alert for"
+                              ; color: App.Theme.textDim; font.pixelSize: 12 }
+                        SpinBox {
+                            editable: true
+                            from: 0; to: 120
+                            value: App.AppSettings.alertLightningStickyMin
+                            onValueModified: App.AppSettings.alertLightningStickyMin = value
+                            Layout.preferredWidth: 100
+                        }
+                        Label { text: "min after last close strike"
+                              ; color: App.Theme.textFaint; font.pixelSize: 12 }
+                        Item { Layout.fillWidth: true }
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 2
+                        text: "Lightning distance reports the latest strike, which bounces around during a live storm. Holding keeps the alert active through that noise. Set to 0 for strict per-strike behavior."
+                        color: App.Theme.textFaint
+                        font.pixelSize: 10
+                        wrapMode: Text.WordWrap
+                    }
+
                     // ---- Wind ----
                     Label {
                         text: "Wind tile"

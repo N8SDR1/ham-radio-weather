@@ -24,7 +24,7 @@ LOGO_PATH    = PROJECT_ROOT / "assets" / "wxham_clean.png"
 if not LOGO_PATH.exists():
     LOGO_PATH = PROJECT_ROOT / "assets" / "wxham.png"
 
-APP_VERSION = "1.0.10"
+APP_VERSION = "1.0.11"
 
 # Palette (same as the multi-page doc so branding stays consistent)
 ACCENT   = colors.HexColor("#3b82f6")

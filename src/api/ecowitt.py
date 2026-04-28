@@ -104,16 +104,29 @@ class EcowittClient(QObject):
     # --- polling -------------------------------------------------------
 
     def _poll(self):
+        # Ecowitt unit IDs (per their v3 API docs):
+        #   temp_unitid:     1=°C, 2=°F
+        #   pressure_unitid: 3=hPa, 4=inHg, 5=mmHg
+        #   wind_unitid:     6=m/s, 7=km/h, 8=knots, 9=mph, 10=BFT, 11=ft/s
+        #   rainfall_unitid: 12=mm, 13=in
+        #   solar_unitid:    14=lux, 15=fc, 16=W/m²
+        # We deliberately request imperial across the board because the
+        # rest of the app's flat schema (`tempf`, `baromrelin`,
+        # `windspeedmph`, `hourlyrainin`) is keyed to Ambient's native
+        # imperial units, and `App.Units` handles user-mode conversion
+        # downstream. NOTE: v1.0.10 had these wrong (asked for metric),
+        # which silently broke conversion for both imperial AND metric
+        # users — fixed in v1.0.11.
         params = {
             "application_key": self._app_key,
             "api_key":          self._api_key,
             "mac":              self._mac,
             "call_back":        "all",
-            "temp_unitid":      "1",    # 1 = °F
-            "pressure_unitid":  "3",    # 3 = inHg
-            "wind_unitid":      "6",    # 6 = mph
-            "rainfall_unitid": "12",    # 12 = in
-            "solar_irradiance_unitid": "16",  # 16 = W/m²
+            "temp_unitid":      "2",     # °F
+            "pressure_unitid":  "4",     # inHg
+            "wind_unitid":      "9",     # mph
+            "rainfall_unitid": "13",     # in
+            "solar_irradiance_unitid": "16",  # W/m²
         }
         self._last_poll_iso = datetime.now(timezone.utc).isoformat()
         try:
@@ -320,10 +333,14 @@ class EcowittClient(QObject):
             # Ask for the five families that feed sparklines and trend fields
             "call_back":       "outdoor,indoor,pressure,wind,rainfall",
             "cycle_type":      "5min",
-            "temp_unitid":     "1",    # °F
-            "pressure_unitid": "3",    # inHg
-            "wind_unitid":     "6",    # mph
-            "rainfall_unitid": "12",   # in
+            # Imperial across the board so the values flow into the
+            # tempf / baromrelin / windspeedmph / hourlyrainin slots
+            # without an extra unit conversion. See _poll() for the
+            # full ID legend. v1.0.11 fix.
+            "temp_unitid":     "2",    # °F
+            "pressure_unitid": "4",    # inHg
+            "wind_unitid":     "9",    # mph
+            "rainfall_unitid": "13",   # in
         }
 
         self._last_history_iso = now_utc.isoformat()

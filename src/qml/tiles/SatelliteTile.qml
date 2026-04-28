@@ -30,11 +30,40 @@ Tile {
 
     implicitHeight: 280
 
+    // Ticks are referenced as a dependency inside any binding that
+    // depends on Date.now(). Without this, QML only re-evaluates the
+    // countdown text when `passes` changes — "in 15m" would stay stuck
+    // on "in 15m" until the next TLE poll lands a new pass.
+    //
+    // Adaptive cadence: tick once per second when a pass is imminent
+    // (≤ 2 min out) for smooth seconds countdown, otherwise every 30 s
+    // to keep CPU quiet.
+    property int _tick: 0
+    readonly property bool _imminentCountdown: {
+        if (!hasData || nextIsNow) return false
+        var m = minsUntil(nextPass ? nextPass.aos : null)
+        return m !== null && m >= 0 && m <= 2
+    }
+    Timer {
+        interval: root._imminentCountdown ? 1000 : 30 * 1000
+        running:  true
+        repeat:   true
+        onTriggered: root._tick++
+    }
+
     function minsUntil(iso) {
         if (!iso) return null
         var t = new Date(iso)
         if (isNaN(t.getTime())) return null
         return Math.round((t.getTime() - Date.now()) / 60000)
+    }
+    // Returns seconds-until-AOS for sub-minute granularity. Used when
+    // the pass is close enough that "in 1m" would be misleading.
+    function secsUntil(iso) {
+        if (!iso) return null
+        var t = new Date(iso)
+        if (isNaN(t.getTime())) return null
+        return Math.max(0, Math.round((t.getTime() - Date.now()) / 1000))
     }
     function fmtMinutes(m) {
         if (m === null) return "—"
@@ -43,6 +72,19 @@ Tile {
         var h = Math.floor(m / 60)
         var mm = m % 60
         return "in " + h + "h " + mm + "m"
+    }
+    // Rich countdown that shows seconds when ≤ 90 s out, minutes above
+    // that. Takes the raw ISO so it can always compute fresh against
+    // the current clock.
+    function fmtCountdown(iso) {
+        var _dep = root._tick      // re-evaluate on every tick
+        if (!iso) return "—"
+        var secs = root.secsUntil(iso)
+        if (secs === null) return "—"
+        if (secs <= 0) return "now"
+        if (secs < 90) return "in " + secs + "s"
+        // Fall through to minute display for anything >= 90 s
+        return root.fmtMinutes(root.minsUntil(iso))
     }
     function fmtDuration(s) {
         if (s === undefined || s === null) return "—"
@@ -97,9 +139,26 @@ Tile {
                 }
                 Label {
                     id: countdownLabel
-                    text: root.nextIsNow
-                        ? "Now at " + (root.nextPass ? root.nextPass.current_el : 0) + "°"
-                        : root.fmtMinutes(root.minsUntil(root.nextPass ? root.nextPass.aos : null))
+                    // Rich countdown — shows seconds when the pass is
+                    // imminent (< 90 s out), minutes above that. Depends
+                    // on root._tick so it actually ticks down over time.
+                    // During a live pass, shows current elevation + time
+                    // remaining until LOS instead of an AOS countdown.
+                    text: {
+                        var _dep = root._tick
+                        if (!root.nextPass) return "—"
+                        if (root.nextIsNow) {
+                            var el   = root.nextPass.current_el || 0
+                            var secs = root.secsUntil(root.nextPass.los)
+                            if (secs === null || secs <= 0)
+                                return "At " + el + "°"
+                            if (secs < 90)
+                                return "At " + el + "° · " + secs + "s left"
+                            var mins = Math.round(secs / 60)
+                            return "At " + el + "° · " + mins + "m left"
+                        }
+                        return root.fmtCountdown(root.nextPass.aos)
+                    }
                     color: root.nextIsNow ? App.Theme.good : App.Theme.accent2
                     font.pixelSize: 28
                     font.weight: Font.Bold
@@ -110,6 +169,7 @@ Tile {
                     // so it catches your eye across the room. Falls
                     // back to static display otherwise.
                     readonly property int _minsLeft: {
+                        var _dep = root._tick      // re-evaluate on every tick
                         if (root.nextIsNow) return -1
                         var m = root.minsUntil(root.nextPass ? root.nextPass.aos : null)
                         return (m === null) ? 999 : m
@@ -168,7 +228,10 @@ Tile {
             }
             Item { Layout.fillWidth: true }
             Label {
-                text: root.nextPass ? "⏱ " + root.fmtDuration(root.nextPass.duration_s) : ""
+                // "Pass length" — this is how long AO-27 (or whichever
+                // bird) will be above the horizon when it arrives.
+                // Label it explicitly so it doesn't read as a countdown.
+                text: root.nextPass ? "⏱ Pass " + root.fmtDuration(root.nextPass.duration_s) : ""
                 color: App.Theme.textDim
                 font.pixelSize: 12
                 font.family: App.Theme.displayFont
@@ -207,7 +270,12 @@ Tile {
                         elide: Text.ElideRight
                     }
                     Label {
-                        text: p ? root.fmtMinutes(root.minsUntil(p.aos)) : ""
+                        // Tick-dependent so each row refreshes as time
+                        // passes, not just when TLE data updates.
+                        text: {
+                            var _dep = root._tick
+                            return p ? root.fmtMinutes(root.minsUntil(p.aos)) : ""
+                        }
                         color: App.Theme.textDim
                         font.pixelSize: 12
                         Layout.fillWidth: true

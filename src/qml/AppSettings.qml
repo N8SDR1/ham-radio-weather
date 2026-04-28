@@ -66,6 +66,14 @@ Settings {
     // Yagi is tall and flexy, higher if you've got a sturdy tower.
     property real   moodWindSwayerMph: 50
 
+    // Lightning Nearby alert — after any strike lands within the panic
+    // distance, hold the alert active for this many minutes even if
+    // subsequent strikes report further distances. Real storms don't
+    // become safe the instant one strike lands 15 mi away; this grace
+    // window keeps the warning on during an active storm. Set to 0 to
+    // disable stickiness and revert to strict per-strike behavior.
+    property int    alertLightningStickyMin: 15
+
     // Dev / preview toggles. Checking any of these forces the
     // corresponding dramatic effect regardless of real data — handy for
     // tuning flicker timing / colors without waiting for real weather.

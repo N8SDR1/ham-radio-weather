@@ -15,6 +15,21 @@ import QtQuick
 QtObject {
     id: root
 
+    // --- Lightning-Nearby sticky state --------------------------------
+    // The Ambient / Blitzortung `lightning_distance` field reflects the
+    // distance of the most recent strike, which can bounce around wildly
+    // during a live storm (one strike at 3 mi, the next at 15 mi). If
+    // the alert cleared the moment a further strike landed, operators
+    // would see the warning flicker off while lightning is still
+    // actively striking the area.
+    //
+    // Solution: once any strike lands within the threshold, keep the
+    // alert active for `stickyMs` milliseconds afterward — a grace
+    // window that better matches real storm behavior. User-tunable via
+    // AppSettings.alertLightningStickyMin (minutes), defaulting to 15.
+    property real _lightningNearbyUntilMs: 0
+    property real _lightningNearbyLastDist: 0
+
     readonly property var catalog: [
         { id: "heat",          label: "Heat Warning",        icon: "🥵",
           severity: "warning", defaultEnabled: true,  defaultThreshold: 95,  unit: "°F",
@@ -72,11 +87,17 @@ QtObject {
     }
 
     // Evaluate all enabled rules against live data. Returns sorted array:
-    //   [{id, label, icon, severity, value, threshold, comparator, unit}, ...]
-    function evaluate(data, settings) {
+    //   [{id, label, icon, severity, value, threshold, comparator, unit,
+    //     sticky}, ...]
+    //
+    // `options` (optional 3rd arg) supports:
+    //   lightningStickyMin — minutes to hold the Lightning Nearby alert
+    //                        after the last close strike (default 15).
+    function evaluate(data, settings, options) {
         var out = []
         if (!data) return out
         var sevOrder = { "warning": 0, "watch": 1, "info": 2 }
+        var opts = options || {}
 
         for (var i = 0; i < catalog.length; i++) {
             var r = catalog[i]
@@ -85,15 +106,54 @@ QtObject {
             if (!enabled) continue
             var threshold = s.threshold !== undefined ? Number(s.threshold) : r.defaultThreshold
 
-            // Lightning-specific: only alert if distance is reported AND there was a strike today.
+            // Lightning-specific: sticky-alert behavior. See
+            // _lightningNearbyUntilMs docs above for the "why". Flow:
+            //   1. If the current latest reports a strike within the
+            //      threshold, (re)arm the sticky window from now.
+            //   2. Emit the alert if either (a) we have a live close
+            //      strike, OR (b) we're still inside a previously-armed
+            //      sticky window.
             if (r.id === "lightningNear") {
                 var dist = data.lightning_distance
                 var cnt  = data.lightning_day || 0
-                if (dist === undefined || dist === null || cnt === 0) continue
-                if (_cmp(r.comparator, Number(dist), threshold)) {
+                var now  = Date.now()
+                var stickyMin = (opts.lightningStickyMin !== undefined)
+                              ? Number(opts.lightningStickyMin) : 15
+                var stickyMs  = Math.max(0, stickyMin * 60 * 1000)
+
+                // Strike freshness — Ambient keeps reporting the LAST
+                // strike's distance between strikes, so without this
+                // check we'd keep re-arming the sticky window forever
+                // against a stale strike. Only arm if the reported
+                // strike timestamp is within the sticky window itself.
+                var strikeIso  = data.lightning_time || ""
+                var strikeTime = strikeIso ? new Date(strikeIso).getTime() : 0
+                var strikeFresh = strikeTime > 0 && (now - strikeTime) < stickyMs
+
+                var liveClose = dist !== undefined && dist !== null && cnt > 0
+                              && _cmp(r.comparator, Number(dist), threshold)
+
+                // Live fresh close strike → (re)arm the sticky window
+                if (liveClose && strikeFresh) {
+                    root._lightningNearbyLastDist = Number(dist)
+                    root._lightningNearbyUntilMs  = now + stickyMs
+                }
+
+                // Decide whether to emit the alert
+                var stickyActive = now < root._lightningNearbyUntilMs
+                if (liveClose && strikeFresh) {
                     out.push({ id: r.id, label: r.label, icon: r.icon,
                                severity: r.severity, value: Number(dist),
-                               threshold: threshold, comparator: r.comparator, unit: r.unit })
+                               threshold: threshold, comparator: r.comparator,
+                               unit: r.unit, sticky: false })
+                } else if (stickyActive) {
+                    // Hold the alert at the last known close distance
+                    // until the sticky window expires.
+                    out.push({ id: r.id, label: r.label, icon: r.icon,
+                               severity: r.severity,
+                               value: root._lightningNearbyLastDist,
+                               threshold: threshold, comparator: r.comparator,
+                               unit: r.unit, sticky: true })
                 }
                 continue
             }

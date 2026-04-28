@@ -26,7 +26,7 @@ LOGO_PATH    = PROJECT_ROOT / "assets" / "wxham_clean.png"
 if not LOGO_PATH.exists():
     LOGO_PATH = PROJECT_ROOT / "assets" / "wxham.png"
 
-APP_VERSION = "1.0.10"
+APP_VERSION = "1.0.11"
 
 # ----------------------------------------------------------------------
 # Palette (matches the dashboard's dark theme accents, but print-friendly)
